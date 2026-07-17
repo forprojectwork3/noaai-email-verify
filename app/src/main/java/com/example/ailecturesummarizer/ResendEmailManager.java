@@ -88,6 +88,27 @@ public class ResendEmailManager {
         dispatchEmail(body, callback);
     }
 
+    /**
+     * Sends a password reset email via the Resend API with precisely specified bindings.
+     *
+     * @param toEmail      Recipient email address
+     * @param recoveryUrl  The generated recovery redirect URL
+     * @param callback     Delivers result on the Main Thread
+     */
+    public void sendPasswordResetEmail(String toEmail, String recoveryUrl, EmailCallback callback) {
+        JsonObject bindings = new JsonObject();
+        bindings.addProperty("confirm_link", recoveryUrl);
+
+        JsonObject body = new JsonObject();
+        body.addProperty("from", FROM_EMAIL);
+        body.addProperty("to", toEmail);
+        body.addProperty("subject", "Reset your NOA AI password 🔐");
+        body.addProperty("template_id", "email-verification-noa-ai");
+        body.add("bindings", bindings);
+
+        dispatchEmail(body, callback);
+    }
+
     private void dispatchEmail(JsonObject body, EmailCallback callback) {
         Request request = new Request.Builder()
                 .url(RESEND_API_URL)

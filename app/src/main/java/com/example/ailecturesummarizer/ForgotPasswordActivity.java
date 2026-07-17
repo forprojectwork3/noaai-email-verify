@@ -110,8 +110,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         }
     }
 
-    // ─── Send Reset Link ─────────────────────────────────────────────────────
-
     private void handleSendResetLink() {
         if (tilForgotEmail != null) tilForgotEmail.setError(null);
 
@@ -125,25 +123,34 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         setLoading(true);
 
-        authManager.resetPasswordForEmail(email, new SupabaseAuthManager.AuthCallback() {
-            @Override
-            public void onSuccess(String message) {
-                setLoading(false);
-                showMessage(message);
-                // Delay then go back to Login
-                new android.os.Handler(android.os.Looper.getMainLooper())
-                        .postDelayed(() -> {
-                            startActivity(new Intent(ForgotPasswordActivity.this, LoginActivity.class));
-                            finish();
-                        }, 2500);
-            }
+        try {
+            authManager.resetPasswordForEmail(email, new SupabaseAuthManager.AuthCallback() {
+                @Override
+                public void onSuccess(String message) {
+                    setLoading(false);
+                    if (tilForgotEmail != null) {
+                        tilForgotEmail.setError(null);
+                    }
+                    showMessage("A password reset link has been sent to your email!");
+                    // Delay then go back to Login
+                    new android.os.Handler(android.os.Looper.getMainLooper())
+                            .postDelayed(() -> {
+                                startActivity(new Intent(ForgotPasswordActivity.this, LoginActivity.class));
+                                finish();
+                            }, 2500);
+                }
 
-            @Override
-            public void onError(String errorMessage) {
-                setLoading(false);
-                showMessage(errorMessage);
-            }
-        });
+                @Override
+                public void onError(String errorMessage) {
+                    setLoading(false);
+                    showMessage(errorMessage);
+                }
+            });
+        } catch (Exception e) {
+            setLoading(false);
+            showMessage("An error occurred while processing the request. Please try again.");
+            android.util.Log.e("ForgotPassword", "Exception triggering password reset recovery", e);
+        }
     }
 
     // ─── UI Helpers ──────────────────────────────────────────────────────────

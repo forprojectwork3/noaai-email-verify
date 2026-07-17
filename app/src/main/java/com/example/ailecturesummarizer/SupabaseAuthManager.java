@@ -406,10 +406,18 @@ public class SupabaseAuthManager {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                // Supabase returns 200 OK even if email not found (for security)
                 if (response.isSuccessful()) {
-                    deliverSuccess(callback,
-                            "Password reset link sent! Please check your inbox.");
+                    ResendEmailManager.getInstance().sendPasswordResetEmail(email, "https://noaai.dpdns.org/reset/", new ResendEmailManager.EmailCallback() {
+                        @Override
+                        public void onSuccess(String emailId) {
+                            deliverSuccess(callback, "A password reset link has been sent to your email!");
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            deliverError(callback, errorMessage);
+                        }
+                    });
                 } else {
                     String bodyStr = response.body() != null ? response.body().string() : "";
                     deliverError(callback, extractErrorMessage(bodyStr, response.code()));
