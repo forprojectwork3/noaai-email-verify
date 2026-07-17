@@ -1,0 +1,32 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Outer hexagon ring -->
+    <path
+        android:pathData="M60,8 L104,32 L104,88 L60,112 L16,88 L16,32 Z"
+        android:strokeColor="#FFD700"
+        android:strokeWidth="3"
+        android:fillColor="#00000000" />
+
+    <!-- Inner triangle top -->
+    <path
+        android:pathData="M60,28 L82,68 L38,68 Z"
+        android:fillColor="#FFD700"
+        android:fillAlpha="0.9" />
+
+    <!-- Inner triangle bottom (inverted, offset) -->
+    <path
+        android:pathData="M60,92 L38,52 L82,52 Z"
+        android:fillColor="#FFB347"
+        android:fillAlpha="0.7" />
+
+    <!-- Center dot -->
+    <path
+        android:pathData="M60,55 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.95" />
+
+</vector>

@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">NOA AI</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="hero_title">Turn lectures into\nactionable notes</string>
+    <string name="hero_subtitle">Paste any YouTube link, watch instantly, then generate AI-powered insights.</string>
+    <string name="hint_youtube_url">Paste YouTube lecture link here…</string>
+    <string name="btn_proceed">Proceed</string>
+    <string name="section_ai_tools">AI Tools</string>
+    <string name="section_output">Output</string>
+    <string name="empty_result_title">No output yet</string>
+    <string name="empty_result_subtitle">Select Transcript, Summary, or Timestamps to generate content from this lecture.</string>
+    <string name="loading_video">Loading video…</string>
+    
+    <!-- Noa AI strings -->
+    <string name="btn_summarize">Summarize</string>
+    <string name="btn_transcript">Transcript</string>
+    <string name="btn_study_plan">Study Plan</string>
+    <string name="btn_brief_notes">Brief Notes</string>
+    
+    <string name="chip_transcript">Transcript</string>
+    <string name="chip_summary">Summary</string>
+    <string name="chip_timestamps">Timestamps</string>
+    <string name="btn_copy">Copy</string>
+    <string name="btn_share">Share</string>
+    <string name="btn_pdf">PDF</string>
+    <string name="feature_transcript_desc">Full lecture text</string>
+    <string name="feature_summary_desc">Key points distilled</string>
+    <string name="feature_timestamps_desc">Topic navigation</string>
+    <string name="result_label_transcript">Transcript</string>
+    <string name="result_label_summary">Summary</string>
+    <string name="result_label_timestamps">Timestamps</string>
+    <string name="result_label_output">Output</string>
+    <string name="loading_ai">Generating with AI…</string>
+
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <!-- Nav and UI elements -->
+    <string name="nav_header_title">NOA AI</string>
+    <string name="nav_header_subtitle">Your AI Study Companion</string>
+    <string name="history_empty">No history yet</string>
+    <string name="content_desc_logo">NOA AI Logo</string>
+    <string name="content_desc_menu">Open navigation menu</string>
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</string>
+</resources>

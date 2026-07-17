@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Config for NOA AI
+    ────────────────────────────────────────────────────────────────────────
+    • HTTPS is allowed to all domains (default Android behaviour).
+    • Cleartext (HTTP) is allowed ONLY for localhost/10.0.2.2 (emulator) —
+      this is where the Flask backend runs during development.
+    • Supabase endpoints (*.supabase.co) are HTTPS-only — no special config
+      needed; Android allows HTTPS everywhere by default.
+    • The blanket cleartextTrafficPermitted="true" in the old config allowed
+      HTTP to ALL domains (a security risk). This config is safer.
+-->
+<network-security-config>
+
+    <!-- Block cleartext for all domains by default; HTTPS only -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Allow HTTP cleartext only for the local dev Flask backend -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android Emulator: 10.0.2.2 maps to host machine localhost -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- Physical device connected to same LAN — update to your machine's LAN IP -->
+        <domain includeSubdomains="false">192.168.1.1</domain>
+        <!-- Localhost fallback -->
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+
+    <!-- Supabase HTTPS — trust system CAs (already covered by base-config) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">supabase.co</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+</network-security-config>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base colors from Noa AI -->
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F3EDF7</color>
+
+    <color name="gradient_start">#FFD700</color>
+    <color name="gradient_end">#FFB347</color>
+    <color name="gradient_mid">#FFA07A</color>
+
+    <color name="primary">#FFD700</color>
+    <color name="primary_dark">#F0A500</color>
+    <color name="primary_light">#FFF9C4</color>
+    <color name="on_primary">#1A1A1A</color>
+    <color name="secondary">#FFB347</color>
+    <color name="on_secondary">#1A1A1A</color>
+    <color name="accent">#FF8C00</color>
+
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#6B6B6B</color>
+    <color name="text_hint">#9E9E9E</color>
+    <color name="text_tertiary">#BDBDBD</color>
+    <color name="text_on_primary">#1A1A1A</color>
+
+    <color name="drawer_background">#FFFFFF</color>
+    <color name="nav_item_selected">#FFF8E1</color>
+    <color name="divider">#E0E0E0</color>
+    <color name="input_border">#FFD700</color>
+    <color name="button_disabled">#BDBDBD</color>
+    
+    <color name="border">#E0E0E0</color>
+    <color name="border_light">#F5F5F5</color>
+
+    <color name="chip_transcript">#FFF8E1</color>
+    <color name="chip_summary">#FFF3E0</color>
+    <color name="chip_timestamps">#FFE0B2</color>
+
+    <color name="result_bg">#FAFAFA</color>
+    <color name="overlay_scrim">#991A1A1A</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent_black_30">#4D000000</color>
+</resources>

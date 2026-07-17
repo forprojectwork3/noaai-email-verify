@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Palette -->
+    <color name="background">#120E1A</color>
+    <color name="surface">#1E1A2E</color>
+    <color name="surface_variant">#2A2438</color>
+
+    <!-- Electric Purple → Magenta Neon Gradient -->
+    <color name="gradient_start">#8A2BE2</color>
+    <color name="gradient_end">#FF007F</color>
+    <color name="gradient_mid">#B315B1</color>
+
+    <!-- Primary / Accent -->
+    <color name="primary">#8A2BE2</color>
+    <color name="primary_dark">#6A0FBA</color>
+    <color name="primary_light">#D1C4E9</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="secondary">#FF007F</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="accent">#FF007F</color>
+
+    <!-- Text -->
+    <color name="text_primary">#F0EAFA</color>
+    <color name="text_secondary">#B0A0CC</color>
+    <color name="text_hint">#7A6A99</color>
+    <color name="text_tertiary">#4A3F5E</color>
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <!-- Drawer / Navigation -->
+    <color name="drawer_background">#1E1A2E</color>
+    <color name="nav_item_selected">#2D1B4E</color>
+
+    <!-- Divider / Border -->
+    <color name="divider">#3A2F52</color>
+    <color name="input_border">#8A2BE2</color>
+    <color name="button_disabled">#4A3F5E</color>
+    
+    <color name="border">#3A2F52</color>
+    <color name="border_light">#2A2438</color>
+
+    <color name="chip_transcript">#2D1B4E</color>
+    <color name="chip_summary">#3A1F41</color>
+    <color name="chip_timestamps">#1A2C4C</color>
+
+    <color name="result_bg">#120E1A</color>
+    <color name="overlay_scrim">#99000000</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

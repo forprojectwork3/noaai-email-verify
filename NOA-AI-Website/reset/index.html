@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password | NOA AI</title>
+    <style>
+        body { font-family: sans-serif; background-color: #0b0a12; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #131124; padding: 40px; border-radius: 16px; border: 1px solid #251f47; max-width: 400px; width: 100%; text-align: center; }
+        h1 { color: #bc13fe; font-size: 24px; margin-bottom: 10px; }
+        p { color: #b3b0cb; font-size: 14px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #251f47; background: #0b0a12; color: white; box-sizing: border-box; }
+        .btn { background: linear-gradient(135deg, #bc13fe 0%, #7b12ff 100%); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .status { margin-top: 15px; font-size: 13px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Reset Password 🔐</h1>
+        <p>Please type your new secure password below to update your NOA AI account credentials.</p>
+        
+        <input type="password" id="newPassword" placeholder="Enter new password" required />
+        <input type="password" id="confirmPassword" placeholder="Confirm new password" required />
+        <button onclick="handlePasswordReset()" class="btn">Update Password</button>
+        
+        <div id="statusMessage" class="status"></div>
+    </div>
+
+    <script>
+        function handlePasswordReset() {
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const status = document.getElementById('statusMessage');
+
+            if (!newPass || newPass.length < 6) {
+                status.style.color = '#ffa500';
+                status.innerText = "Password must be at least 6 characters long.";
+                return;
+            }
+            if (newPass !== confirmPass) {
+                status.style.color = '#ffa500';
+                status.innerText = "Passwords do not match!";
+                return;
+            }
+
+            const hash = window.location.hash;
+            const params = new URLSearchParams(hash.replace('#', '?'));
+            const accessToken = params.get('access_token');
+
+            if (!accessToken) {
+                status.style.color = '#ff4d4d';
+                status.innerText = "Session expired or invalid link. Please request a new reset link.";
+                return;
+            }
+
+            status.style.color = '#ffffff';
+            status.innerText = "Updating account credentials...";
+
+            fetch('https://lumbpfcruwjqudtdbkrm.supabase.co/auth/v1/user', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
+                    'apikey': 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_'
+                },
+                body: JSON.stringify({ password: newPass })
+            })
+            .then(response => {
+                if (response.ok) {
+                    status.style.color = '#00ffcc';
+                    status.innerText = "Password updated successfully! You can now log in using your mobile app.";
+                } else {
+                    return response.json().then(err => { throw err; });
+                }
+            })
+            .catch(error => {
+                status.style.color = '#ff4d4d';
+                status.innerText = error.message || "Failed to update password. Try again.";
+            });
+        }
+    </script>
+</body>
+</html>

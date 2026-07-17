@@ -1,0 +1,10 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="screen_padding">20dp</dimen>
+    <dimen name="card_radius">20dp</dimen>
+    <dimen name="card_radius_sm">14dp</dimen>
+    <dimen name="player_height">220dp</dimen>
+    <dimen name="hero_height">200dp</dimen>
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="section_spacing">24dp</dimen>
+</resources>
