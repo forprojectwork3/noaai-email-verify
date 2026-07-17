@@ -384,17 +384,17 @@ public class SupabaseAuthManager {
 
     /**
      * Requests a password-reset link email from Supabase.
-     * The email contains a link that will open ResetPasswordActivity via deep link
-     * {@code myapp://reset-password}.
+     * The email contains a link that will open the password reset page
+     * at https://noaai.dpdns.org/reset/.
      *
      * @param email    The account email to send the reset link to
      * @param callback Delivers result to the calling Activity on the Main Thread
      */
-    public void requestPasswordReset(final String email, final AuthCallback callback) {
+    public void resetPasswordForEmail(final String email, final AuthCallback callback) {
 
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
-        body.addProperty("redirectTo", "myapp://reset-password");
+        body.addProperty("redirectTo", "https://noaai.dpdns.org/reset/");
 
         Request request = buildPostRequest("/auth/v1/recover", body.toString());
 

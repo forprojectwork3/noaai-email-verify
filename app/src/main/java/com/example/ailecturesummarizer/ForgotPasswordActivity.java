@@ -125,7 +125,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         setLoading(true);
 
-        authManager.requestPasswordReset(email, new SupabaseAuthManager.AuthCallback() {
+        authManager.resetPasswordForEmail(email, new SupabaseAuthManager.AuthCallback() {
             @Override
             public void onSuccess(String message) {
                 setLoading(false);
