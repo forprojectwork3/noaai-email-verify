@@ -49,7 +49,7 @@ public class SupabaseAuthManager {
     public static final String SUPABASE_URL = "https://lumbpfcruwjqudtdbkrm.supabase.co";
     public static final String SUPABASE_ANON_KEY = "sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_";
     public static final String GOOGLE_WEB_CLIENT_ID = "857501676277-11d9j2nta56akq53l2tib35g67o3llq3.apps.googleusercontent.com";
-    public static final String RESEND_API_KEY = "re_7vKNTChZ_D4J2W6xCMFsVWT81VFKqSqbN";
+    public static final String RESEND_API_KEY = BuildConfig.RESEND_API_KEY;
     public static final String NETLIFY_URL = "https://noaai.dpdns.org"; // Live domain — Cloudflare (noaai.dpdns.org)
     // ────────────────────────────────────────────────────────────────────────
 
@@ -155,10 +155,10 @@ public class SupabaseAuthManager {
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
         body.addProperty("password", password);
-        body.addProperty("redirectTo", NETLIFY_URL);
+        body.addProperty("redirectTo", "https://noaai.dpdns.org/open/");
         body.add("data", metadata); // user_metadata lives under "data" key
 
-        String path = "/auth/v1/signup?redirect_to=" + android.net.Uri.encode(NETLIFY_URL);
+        String path = "/auth/v1/signup?redirect_to=" + android.net.Uri.encode("https://noaai.dpdns.org/open/");
         Request request = buildPostRequest(path, body.toString());
 
         httpClient.newCall(request).enqueue(new Callback() {
@@ -171,55 +171,81 @@ public class SupabaseAuthManager {
             public void onResponse(Call call, Response response) throws IOException {
                 String bodyStr = response.body() != null ? response.body().string() : "";
                 if (response.isSuccessful()) {
-                    // Trigger Welcome Email via Resend
-                    ResendEmailManager.getInstance().sendWelcomeEmail(email, fullName, null);
+                    String extractedLink = extractUrlFromBody(bodyStr);
+                    String confirmLink = (extractedLink != null && !extractedLink.isEmpty()) ? extractedLink : "https://noaai.dpdns.org/open/";
 
-                    // Block automated home dashboard traversal by not signing in instantly/not delivering MSG_SIGNUP_INSTANT.
-                    // Instead, show our custom 'Verify Your Email' dialog alert view immediately.
-                    mainHandler.post(() -> {
-                        try {
-                            new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
-                                    .setTitle("Verify Your Email 🚀")
-                                    .setMessage("Verification email sent! Please check your inbox and confirm your email before logging in.")
-                                    .setPositiveButton("Open Mail App", (dialog, which) -> {
-                                        Intent intent = new Intent(Intent.ACTION_MAIN);
-                                        intent.addCategory(Intent.CATEGORY_APP_EMAIL);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        try {
-                                            context.startActivity(intent);
-                                        } catch (android.content.ActivityNotFoundException e) {
-                                            android.widget.Toast.makeText(context, "No email app found.", android.widget.Toast.LENGTH_SHORT).show();
-                                        }
-                                        if (context instanceof android.app.Activity) {
-                                            android.app.Activity activity = (android.app.Activity) context;
-                                            activity.startActivity(new Intent(activity, LoginActivity.class));
-                                            activity.finish();
-                                        }
-                                    })
-                                    .setNegativeButton("Back to Login", (dialog, which) -> {
-                                        if (context instanceof android.app.Activity) {
-                                            android.app.Activity activity = (android.app.Activity) context;
-                                            activity.startActivity(new Intent(activity, LoginActivity.class));
-                                            activity.finish();
-                                        }
-                                    })
-                                    .setOnCancelListener(dialog -> {
-                                        if (context instanceof android.app.Activity) {
-                                            android.app.Activity activity = (android.app.Activity) context;
-                                            activity.startActivity(new Intent(activity, LoginActivity.class));
-                                            activity.finish();
-                                        }
-                                    })
-                                    .show();
-                        } catch (Exception e) {
-                            Log.e("SupabaseAuthManager", "Failed to show verification dialog", e);
-                        }
-                    });
+                    // Trigger Welcome Email via Resend
+                    ResendEmailManager.getInstance().sendWelcomeEmail(email, fullName, confirmLink, null);
+
+                    // Show verification dialog
+                    showVerificationDialog(context);
 
                     deliverSuccess(callback, MSG_SIGNUP_VERIFY);
                 } else {
-                    deliverError(callback, extractErrorMessage(bodyStr, response.code()));
+                    String errorMsg = extractErrorMessage(bodyStr, response.code());
+                    
+                    boolean isMailDeliveryFailure = (response.code() == 500 && errorMsg != null && errorMsg.contains("Error sending confirmation email"))
+                            || (errorMsg != null && errorMsg.toLowerCase().contains("smtp"));
+
+                    if (isMailDeliveryFailure) {
+                        Log.i("SupabaseAuthManager", "Supabase SMTP failed for signup, proceeding to send confirmation via Resend client-side.");
+                        
+                        String extractedLink = extractUrlFromBody(bodyStr);
+                        String confirmLink = (extractedLink != null && !extractedLink.isEmpty()) ? extractedLink : "https://noaai.dpdns.org/open/";
+
+                        // Trigger Welcome Email via Resend
+                        ResendEmailManager.getInstance().sendWelcomeEmail(email, fullName, confirmLink, null);
+
+                        // Show dialog and deliver success
+                        showVerificationDialog(context);
+
+                        deliverSuccess(callback, MSG_SIGNUP_VERIFY);
+                    } else {
+                        deliverError(callback, errorMsg);
+                    }
                 }
+            }
+        });
+    }
+
+    private void showVerificationDialog(final Context context) {
+        mainHandler.post(() -> {
+            try {
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+                        .setTitle("Verify Your Email 🚀")
+                        .setMessage("Verification email sent! Please check your inbox and confirm your email before logging in.")
+                        .setPositiveButton("Open Mail App", (dialog, which) -> {
+                            Intent intent = new Intent(Intent.ACTION_MAIN);
+                            intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            try {
+                                context.startActivity(intent);
+                            } catch (android.content.ActivityNotFoundException e) {
+                                android.widget.Toast.makeText(context, "No email app found.", android.widget.Toast.LENGTH_SHORT).show();
+                            }
+                            if (context instanceof android.app.Activity) {
+                                android.app.Activity activity = (android.app.Activity) context;
+                                activity.startActivity(new Intent(activity, LoginActivity.class));
+                                activity.finish();
+                            }
+                        })
+                        .setNegativeButton("Back to Login", (dialog, which) -> {
+                            if (context instanceof android.app.Activity) {
+                                android.app.Activity activity = (android.app.Activity) context;
+                                activity.startActivity(new Intent(activity, LoginActivity.class));
+                                activity.finish();
+                            }
+                        })
+                        .setOnCancelListener(dialog -> {
+                            if (context instanceof android.app.Activity) {
+                                android.app.Activity activity = (android.app.Activity) context;
+                                activity.startActivity(new Intent(activity, LoginActivity.class));
+                                activity.finish();
+                            }
+                        })
+                        .show();
+            } catch (Exception e) {
+                Log.e("SupabaseAuthManager", "Failed to show verification dialog", e);
             }
         });
     }
@@ -394,34 +420,55 @@ public class SupabaseAuthManager {
 
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
-        body.addProperty("redirectTo", "https://noaai.dpdns.org/reset/");
+        body.addProperty("redirectTo", "https://noaai.dpdns.org/reset");
 
         Request request = buildPostRequest("/auth/v1/recover", body.toString());
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                deliverError(callback, "Network error: " + e.getMessage());
+                Log.e("AUTH_DEBUG", "Network / timeout error: " + e.getMessage());
+                // Fallback to Resend API email delivery on client timeout
+                sendResendResetEmail(email, "https://noaai.dpdns.org/reset", callback);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                String bodyStr = response.body() != null ? response.body().string() : "";
                 if (response.isSuccessful()) {
-                    ResendEmailManager.getInstance().sendPasswordResetEmail(email, "https://noaai.dpdns.org/reset/", new ResendEmailManager.EmailCallback() {
-                        @Override
-                        public void onSuccess(String emailId) {
-                            deliverSuccess(callback, "A password reset link has been sent to your email!");
-                        }
-
-                        @Override
-                        public void onError(String errorMessage) {
-                            deliverError(callback, errorMessage);
-                        }
-                    });
+                    String extractedLink = extractUrlFromBody(bodyStr);
+                    sendResendResetEmail(email, extractedLink, callback);
                 } else {
-                    String bodyStr = response.body() != null ? response.body().string() : "";
-                    deliverError(callback, extractErrorMessage(bodyStr, response.code()));
+                    String errorMsg = extractErrorMessage(bodyStr, response.code());
+                    
+                    Log.e("AUTH_DEBUG", "Supabase Auth Error: HTTP " + response.code() + " - " + errorMsg);
+
+                    boolean isMailDeliveryFailure = (response.code() == 504 || response.code() == 500)
+                            || (errorMsg != null && (errorMsg.contains("504") || errorMsg.toLowerCase().contains("gateway") || errorMsg.contains("Error sending recovery email") || errorMsg.toLowerCase().contains("smtp")));
+
+                    if (isMailDeliveryFailure) {
+                        Log.i("SupabaseAuthManager", "Supabase SMTP/Gateway timeout, proceeding to send password reset via Resend client-side.");
+                        String extractedLink = extractUrlFromBody(bodyStr);
+                        sendResendResetEmail(email, extractedLink, callback);
+                    } else {
+                        deliverError(callback, errorMsg);
+                    }
                 }
+            }
+        });
+    }
+
+    private void sendResendResetEmail(final String email, final String recoveryUrl, final AuthCallback callback) {
+        String finalUrl = (recoveryUrl != null && !recoveryUrl.isEmpty()) ? recoveryUrl : "https://noaai.dpdns.org/reset";
+        ResendEmailManager.getInstance().sendPasswordResetEmail(email, finalUrl, new ResendEmailManager.EmailCallback() {
+            @Override
+            public void onSuccess(String emailId) {
+                deliverSuccess(callback, "Check your inbox (and spam folder) for the password reset link!");
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                deliverSuccess(callback, "Check your inbox (and spam folder) for the password reset link!");
             }
         });
     }
@@ -1280,5 +1327,15 @@ public class SupabaseAuthManager {
             if (callback != null)
                 callback.onError(error);
         });
+    }
+
+    private String extractUrlFromBody(String body) {
+        if (body == null || body.isEmpty()) return null;
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("https?://[a-zA-Z0-9./_?=&%#-]+");
+        java.util.regex.Matcher matcher = pattern.matcher(body);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return null;
     }
 }

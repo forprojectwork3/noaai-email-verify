@@ -214,36 +214,47 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void navigateToMain() {
-        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-        startActivity(intent);
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        finish();
-    }
+    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+    startActivity(intent);
+    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    finish();
+}
 
-    private void showVerificationDialog() {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle("Verify Your Email 🚀")
-                .setMessage("Verification email sent! Please check your inbox and confirm your email before logging in.")
-                .setPositiveButton("Open Mail App", (dialog, which) -> {
-                    Intent intent = new Intent(Intent.ACTION_MAIN);
-                    intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+private void showVerificationDialog() {
+    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("Verify Your Email 🚀")
+            .setMessage("Verification email sent! Please check your inbox and confirm your email before logging in.")
+            .setPositiveButton("Open Gmail", (dialog, which) -> {
+                // Explicitly target the Gmail app package
+                Intent intent = getPackageManager().getLaunchIntentForPackage("com.google.android.gm");
+                
+                if (intent != null) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } else {
+                    // Fallback: If Gmail isn't installed, look for any default email app
+                    Intent fallbackIntent = new Intent(Intent.ACTION_MAIN);
+                    fallbackIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                    fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     try {
-                        startActivity(intent);
+                        startActivity(fallbackIntent);
                     } catch (android.content.ActivityNotFoundException e) {
-                        android.widget.Toast.makeText(this, "No email app found.", android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(this, "Gmail and other email apps not found.", android.widget.Toast.LENGTH_SHORT).show();
                     }
-                    navigateToLogin();
-                })
-                .setNegativeButton("Back to Login", (dialog, which) -> navigateToLogin())
-                .setOnCancelListener(dialog -> navigateToLogin())
-                .show();
-    }
+                }
+                navigateToLogin();
+            })
+            .setNegativeButton("Back to Login", (dialog, which) -> navigateToLogin())
+            .setOnCancelListener(dialog -> navigateToLogin())
+            .show();
+}
 
-    private void navigateToLogin() {
-        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-        finish();
-    }
+private void navigateToLogin() {
+    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+    startActivity(intent);
+    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    finish();
+}
 
     // ─── Google OAuth ────────────────────────────────────────────────────────
 

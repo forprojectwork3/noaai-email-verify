@@ -3,6 +3,7 @@ package com.example.ailecturesummarizer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
@@ -131,7 +132,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                     if (tilForgotEmail != null) {
                         tilForgotEmail.setError(null);
                     }
-                    showMessage("A password reset link has been sent to your email!");
+                    showMessage(message);
                     // Delay then go back to Login
                     new android.os.Handler(android.os.Looper.getMainLooper())
                             .postDelayed(() -> {
@@ -143,7 +144,11 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 @Override
                 public void onError(String errorMessage) {
                     setLoading(false);
-                    showMessage(errorMessage);
+                    Log.e("AUTH_DEBUG", "Password reset request error: " + errorMessage);
+                    String friendlyMsg = (errorMessage != null && (errorMessage.contains("504") || errorMessage.toLowerCase().contains("gateway") || errorMessage.toLowerCase().contains("timeout")))
+                            ? "The email server took longer than expected. Please check your inbox (and spam folder) or try again in a few moments."
+                            : errorMessage;
+                    showMessage(friendlyMsg);
                 }
             });
         } catch (Exception e) {

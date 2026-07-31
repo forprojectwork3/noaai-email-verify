@@ -4,80 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password | NOA AI</title>
+    <!-- Include Supabase JS SDK v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background-color: #0b0a12; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #131124; padding: 40px; border-radius: 16px; border: 1px solid #251f47; max-width: 400px; width: 100%; text-align: center; }
-        h1 { color: #bc13fe; font-size: 24px; margin-bottom: 10px; }
-        p { color: #b3b0cb; font-size: 14px; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #251f47; background: #0b0a12; color: white; box-sizing: border-box; }
-        .btn { background: linear-gradient(135deg, #bc13fe 0%, #7b12ff 100%); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .status { margin-top: 15px; font-size: 13px; font-weight: bold; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #090713; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow-x: hidden; }
+
+        /* Floating Animated Pop-up Toast */
+        .toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1b3a;
+            border: 1px solid #3b3267;
+            padding: 14px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            top: 24px;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast.success { border-color: #22c55e; color: #4ade80; }
+        .toast.error { border-color: #ef4444; color: #f87171; }
+
+        /* Card Container */
+        .card { background: #131124; border: 1px solid #231f42; border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); text-align: center; }
+        h2 { font-size: 24px; margin-bottom: 8px; color: #a855f7; font-weight: 700; }
+        p.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
+        
+        /* Input Field Wrappers */
+        .input-group { position: relative; margin-bottom: 18px; text-align: left; }
+        .input-group input {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            background: #090713;
+            border: 1px solid #28234a;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .input-group input:focus { border-color: #a855f7; box-shadow: 0 0 12px rgba(168, 85, 247, 0.25); }
+
+        /* Eye Icon Toggle Button */
+        .eye-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .eye-btn:hover { color: #a855f7; }
+        .eye-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* Submit Button */
+        button.submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 8px;
+        }
+        button.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35); }
+        button.submit-btn:active:not(:disabled) { transform: translateY(0); }
+        button.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
     </style>
 </head>
 <body>
+
+    <div id="toast" class="toast">
+        <span id="toast-icon">✨</span>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
     <div class="card">
-        <h1>Reset Password 🔐</h1>
-        <p>Please type your new secure password below to update your NOA AI account credentials.</p>
-        
-        <input type="password" id="newPassword" placeholder="Enter new password" required />
-        <input type="password" id="confirmPassword" placeholder="Confirm new password" required />
-        <button onclick="handlePasswordReset()" class="btn">Update Password</button>
-        
-        <div id="statusMessage" class="status"></div>
+        <h2>Reset Password 🔐</h2>
+        <p class="subtitle">Please enter your new secure password below to update your NOA AI credentials.</p>
+
+        <form id="reset-form">
+            <div class="input-group">
+                <input type="password" id="new-password" placeholder="New Password" required minlength="6" autocomplete="new-password">
+                <button type="button" class="eye-btn" onclick="toggleVisibility('new-password', this)" title="Toggle Password" aria-label="Toggle password visibility">
+                    <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6" autocomplete="new-password">
+                <button type="button" class="eye-btn" onclick="toggleVisibility('confirm-password', this)" title="Toggle Password" aria-label="Toggle confirm password visibility">
+                    <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+            </div>
+
+            <button type="submit" id="submit-btn" class="submit-btn">Update Password</button>
+        </form>
     </div>
 
     <script>
-        function handlePasswordReset() {
-            const newPass = document.getElementById('newPassword').value;
-            const confirmPass = document.getElementById('confirmPassword').value;
-            const status = document.getElementById('statusMessage');
+        // 1. Initialize Supabase
+        const SUPABASE_URL = 'https://lumbpfcruwjqudtdbkrm.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
+        let supabase = null;
 
-            if (!newPass || newPass.length < 6) {
-                status.style.color = '#ffa500';
-                status.innerText = "Password must be at least 6 characters long.";
-                return;
-            }
-            if (newPass !== confirmPass) {
-                status.style.color = '#ffa500';
-                status.innerText = "Passwords do not match!";
-                return;
-            }
-
-            const hash = window.location.hash;
-            const params = new URLSearchParams(hash.replace('#', '?'));
-            const accessToken = params.get('access_token');
-
-            if (!accessToken) {
-                status.style.color = '#ff4d4d';
-                status.innerText = "Session expired or invalid link. Please request a new reset link.";
-                return;
-            }
-
-            status.style.color = '#ffffff';
-            status.innerText = "Updating account credentials...";
-
-            fetch('https://lumbpfcruwjqudtdbkrm.supabase.co/auth/v1/user', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                    'apikey': 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_'
-                },
-                body: JSON.stringify({ password: newPass })
-            })
-            .then(response => {
-                if (response.ok) {
-                    status.style.color = '#00ffcc';
-                    status.innerText = "Password updated successfully! You can now log in using your mobile app.";
-                } else {
-                    return response.json().then(err => { throw err; });
-                }
-            })
-            .catch(error => {
-                status.style.color = '#ff4d4d';
-                status.innerText = error.message || "Failed to update password. Try again.";
-            });
+        if (window.supabase) {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!supabase && window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        });
+
+        // 2. Eye Visibility Toggle Function
+        function toggleVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const currentType = input.getAttribute('type') || input.type;
+            
+            if (currentType === 'password') {
+                input.setAttribute('type', 'text');
+                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            } else {
+                input.setAttribute('type', 'password');
+                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+        }
+
+        // 3. Smooth Toast Pop-Up Helper
+        let toastTimeout = null;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            if (!toast || !toastMsg || !toastIcon) return;
+
+            toastMsg.innerText = message;
+            toastIcon.innerText = type === 'success' ? '✅' : '⚠️';
+            toast.className = `toast ${type} show`;
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // 4. Form Submit Handler
+        const form = document.getElementById('reset-form');
+        const submitBtn = document.getElementById('submit-btn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match!', 'error');
+                return;
+            }
+
+            if (!newPassword || newPassword.length < 6) {
+                showToast('Password must be at least 6 characters long.', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Updating...';
+
+            try {
+                if (!supabase && window.supabase) {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+
+                if (!supabase) {
+                    throw new Error("Supabase client failed to initialize.");
+                }
+
+                // Handle session tokens (#access_token=...&refresh_token=...) if present in URL
+                const hash = window.location.hash;
+                if (hash && hash.includes('access_token=')) {
+                    const params = new URLSearchParams(hash.substring(1));
+                    const accessToken = params.get('access_token');
+                    const refreshToken = params.get('refresh_token');
+                    if (accessToken && refreshToken) {
+                        await supabase.auth.setSession({
+                            access_token: accessToken,
+                            refresh_token: refreshToken
+                        });
+                    }
+                }
+
+                const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+
+                if (error) {
+                    showToast(error.message || 'Failed to update password.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Update Password';
+                } else {
+                    showToast('Password updated successfully!', 'success');
+                    submitBtn.innerText = 'Updated!';
+                    form.reset();
+                }
+            } catch (err) {
+                console.error("Password reset error:", err);
+                showToast(err.message || 'An error occurred while updating your password.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Update Password';
+            }
+        });
     </script>
 </body>
 </html>

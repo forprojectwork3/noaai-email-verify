@@ -74,24 +74,26 @@ import retrofit2.Response;
  * MainActivity — Core workspace for NOA AI Lecture Summarizer.
  *
  * Features:
- *  • DrawerLayout sidebar with RecyclerView history
- *  • YouTubePlayerView (pierfrancescosoffritti library) — embedded, no external app launch
- *  • TextWatcher + YouTube URL regex to unlock action buttons
- *  • 4 action buttons (Summarize, Transcript, Timestamps, Chat with AI)
- *  • Retrofit API calls to Flask backend endpoints
- *  • SQLite caching for summaries
+ * • DrawerLayout sidebar with RecyclerView history
+ * • YouTubePlayerView (pierfrancescosoffritti library) — embedded, no external
+ * app launch
+ * • TextWatcher + YouTube URL regex to unlock action buttons
+ * • 4 action buttons (Summarize, Transcript, Timestamps, Chat with AI)
+ * • Retrofit API calls to Flask backend endpoints
+ * • SQLite caching for summaries
  *
  * Backend Endpoints Used:
- *  • POST /api/summary    → Summarize button
- *  • POST /api/transcript → Transcript button
- *  • POST /api/timestamps → Timestamps button
- *  • Chat button opens ChatbotActivity (uses /api/summary internally)
+ * • POST /api/summary → Summarize button
+ * • POST /api/transcript → Transcript button
+ * • POST /api/timestamps → Timestamps button
+ * • Chat button opens ChatbotActivity (uses /api/summary internally)
  *
  * YouTube Player:
- *  • Uses AndroidYouTubePlayer library (com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0)
- *  • Video loads INSIDE the app — does NOT open YouTube app or browser
- *  • Lifecycle-aware (registered with getLifecycle())
- *  • Supports play, pause, seek, fullscreen, portrait & landscape
+ * • Uses AndroidYouTubePlayer library
+ * (com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0)
+ * • Video loads INSIDE the app — does NOT open YouTube app or browser
+ * • Lifecycle-aware (registered with getLifecycle())
+ * • Supports play, pause, seek, fullscreen, portrait & landscape
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -99,50 +101,50 @@ public class MainActivity extends AppCompatActivity {
     private static final String YOUTUBE_BASE = "https://www.youtube.com";
 
     // ── Animation constants ──────────────────────────────────────────────────
-    private static final float ALPHA_DISABLED  = 0.4f;
-    private static final float ALPHA_ENABLED   = 1.0f;
-    private static final long  ALPHA_ANIM_MS   = 350L;
+    private static final float ALPHA_DISABLED = 0.4f;
+    private static final float ALPHA_ENABLED = 1.0f;
+    private static final long ALPHA_ANIM_MS = 350L;
 
-    private static final float PRESS_SCALE     = 0.96f;
-    private static final float NORMAL_SCALE    = 1.0f;
-    private static final float BOUNCE_SCALE    = 1.04f;
-    private static final long  PRESS_ANIM_MS   = 80L;
-    private static final long  RELEASE_ANIM_MS = 300L;
+    private static final float PRESS_SCALE = 0.96f;
+    private static final float NORMAL_SCALE = 1.0f;
+    private static final float BOUNCE_SCALE = 1.04f;
+    private static final long PRESS_ANIM_MS = 80L;
+    private static final long RELEASE_ANIM_MS = 300L;
 
     // ── UI References ────────────────────────────────────────────────────────
-    private DrawerLayout      drawerLayout;
+    private DrawerLayout drawerLayout;
     private YouTubePlayerView youTubePlayerView;
     private TextInputEditText etYoutubeUrl;
-    private HistoryAdapter    historyAdapter;
+    private HistoryAdapter historyAdapter;
     private android.widget.LinearLayout llPlayerErrorOverlay;
-    private TextView          tvPlayerErrorOverlayMessage;
+    private TextView tvPlayerErrorOverlayMessage;
 
-    private MaterialButton    btnSummarize;
-    private MaterialButton    btnTranscript;
-    private MaterialButton    btnStudyPlan;   // Timestamps
-    private MaterialButton    btnBriefNotes;  // Chat with AI
+    private MaterialButton btnSummarize;
+    private MaterialButton btnTranscript;
+    private MaterialButton btnStudyPlan; // Timestamps
+    private MaterialButton btnBriefNotes; // Chat with AI
 
     // Sidebar UI references
-    private LinearLayout      btnLogout;       // LinearLayout acting as logout row in sidebar
-    private LinearLayout      llUserSection;   // Bottom user profile section in sidebar
+    private LinearLayout btnLogout; // LinearLayout acting as logout row in sidebar
+    private LinearLayout llUserSection; // Bottom user profile section in sidebar
     private ShapeableImageView ivUserAvatar;
-    private TextView          tvNavHeaderName;
-    private TextView          tvNavHeaderEmail;
+    private TextView tvNavHeaderName;
+    private TextView tvNavHeaderEmail;
 
     // ── State ────────────────────────────────────────────────────────────────
-    private YouTubePlayer     activeYouTubePlayer;
-    private String            currentVideoId;
-    private String            currentUrl;
-    private String            currentVideoTitle = "";
-    private String            currentChatId = null;
-    private boolean           buttonsEnabled = false;
-    private boolean           playerReady = false;
+    private YouTubePlayer activeYouTubePlayer;
+    private String currentVideoId;
+    private String currentUrl;
+    private String currentVideoTitle = "";
+    private String currentChatId = null;
+    private boolean buttonsEnabled = false;
+    private boolean playerReady = false;
 
     // ── Database & Threading ─────────────────────────────────────────────────
-    private NoaDatabaseHelper  dbHelper;
+    private NoaDatabaseHelper dbHelper;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private final Handler      mainHandler = new Handler(Looper.getMainLooper());
-    private Dialog             progressDialog;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Dialog progressDialog;
     private android.widget.TextView progressMessageView;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -189,23 +191,23 @@ public class MainActivity extends AppCompatActivity {
 
     // ── View binding ──────────────────────────────────────────────────────────
     private void bindViews() {
-        drawerLayout      = findViewById(R.id.drawerLayout);
+        drawerLayout = findViewById(R.id.drawerLayout);
         youTubePlayerView = findViewById(R.id.youTubePlayerView);
-        etYoutubeUrl      = findViewById(R.id.etYoutubeUrl);
+        etYoutubeUrl = findViewById(R.id.etYoutubeUrl);
 
-        btnSummarize  = findViewById(R.id.btnSummarize);
+        btnSummarize = findViewById(R.id.btnSummarize);
         btnTranscript = findViewById(R.id.btnTranscript);
-        btnStudyPlan  = findViewById(R.id.btnStudyPlan);
+        btnStudyPlan = findViewById(R.id.btnStudyPlan);
         btnBriefNotes = findViewById(R.id.btnBriefNotes);
 
         // Sidebar views
-        btnLogout        = findViewById(R.id.btnLogout);
-        llUserSection    = findViewById(R.id.llUserSection);
-        ivUserAvatar     = (ShapeableImageView) findViewById(R.id.ivUserAvatar);
-        tvNavHeaderName  = findViewById(R.id.tvNavHeaderName);
+        btnLogout = findViewById(R.id.btnLogout);
+        llUserSection = findViewById(R.id.llUserSection);
+        ivUserAvatar = (ShapeableImageView) findViewById(R.id.ivUserAvatar);
+        tvNavHeaderName = findViewById(R.id.tvNavHeaderName);
         tvNavHeaderEmail = findViewById(R.id.tvNavHeaderEmail);
 
-        llPlayerErrorOverlay        = findViewById(R.id.llPlayerErrorOverlay);
+        llPlayerErrorOverlay = findViewById(R.id.llPlayerErrorOverlay);
         tvPlayerErrorOverlayMessage = findViewById(R.id.tvPlayerErrorOverlayMessage);
     }
 
@@ -238,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
             // The chat title is used as the video title for display
             if (item.getChatId() != null && !item.getChatId().isEmpty()) {
                 Intent chatIntent = new Intent(MainActivity.this, ChatbotActivity.class);
-                chatIntent.putExtra(ChatbotActivity.EXTRA_VIDEO_URL,   item.getUrl());
+                chatIntent.putExtra(ChatbotActivity.EXTRA_VIDEO_URL, item.getUrl());
                 chatIntent.putExtra(ChatbotActivity.EXTRA_VIDEO_TITLE, item.getTitle());
                 chatIntent.putExtra("chat_id", item.getChatId());
                 startActivity(chatIntent);
@@ -257,12 +259,14 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(String message) {
                                             historyAdapter.removeItem(position);
-                                            Toast.makeText(MainActivity.this, "Chat deleted", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(MainActivity.this, "Chat deleted", Toast.LENGTH_SHORT)
+                                                    .show();
                                         }
 
                                         @Override
                                         public void onError(String errorMessage) {
-                                            Toast.makeText(MainActivity.this, "Failed to delete chat: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(MainActivity.this, "Failed to delete chat: " + errorMessage,
+                                                    Toast.LENGTH_SHORT).show();
                                         }
                                     });
                         } else {
@@ -282,15 +286,20 @@ public class MainActivity extends AppCompatActivity {
                 SupabaseAuthManager.getInstance().createChat(
                         MainActivity.this, defaultTitle,
                         new SupabaseAuthManager.AuthCallback() {
-                            @Override public void onSuccess(String chatId) {
+                            @Override
+                            public void onSuccess(String chatId) {
                                 currentChatId = chatId;
-                                Toast.makeText(MainActivity.this, "Chat created successfully", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Chat created successfully", Toast.LENGTH_SHORT)
+                                        .show();
                                 historyAdapter.addItem(new HistoryItem(defaultTitle, "", chatId));
                                 loadChatHistory();
                             }
-                            @Override public void onError(String errorMessage) {
+
+                            @Override
+                            public void onError(String errorMessage) {
                                 Log.e(TAG, "createChat error: " + errorMessage);
-                                Toast.makeText(MainActivity.this, "Failed to create chat: " + errorMessage, Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this, "Failed to create chat: " + errorMessage,
+                                        Toast.LENGTH_LONG).show();
                             }
                         });
             });
@@ -328,10 +337,12 @@ public class MainActivity extends AppCompatActivity {
                                     new HistoryItem("No chats yet — tap + New Chat", "", ""));
                         }
                     }
+
                     @Override
                     public void onError(String errorMessage) {
                         Log.e(TAG, "fetchChats error: " + errorMessage);
-                        Toast.makeText(MainActivity.this, "Failed to load chats: " + errorMessage, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Failed to load chats: " + errorMessage, Toast.LENGTH_SHORT)
+                                .show();
                     }
                 });
     }
@@ -341,11 +352,11 @@ public class MainActivity extends AppCompatActivity {
         SupabaseAuthManager auth = SupabaseAuthManager.getInstance();
 
         // 1. Show cached values immediately (no network needed)
-        String cachedName   = auth.getCachedUserName(this);
-        String cachedEmail  = auth.getCachedUserEmail(this);
+        String cachedName = auth.getCachedUserName(this);
+        String cachedEmail = auth.getCachedUserEmail(this);
         String cachedAvatar = auth.getCachedAvatarUrl(this);
 
-        if (tvNavHeaderName  != null)
+        if (tvNavHeaderName != null)
             tvNavHeaderName.setText(TextUtils.isEmpty(cachedName) ? "User" : cachedName);
         if (tvNavHeaderEmail != null)
             tvNavHeaderEmail.setText(TextUtils.isEmpty(cachedEmail) ? "" : cachedEmail);
@@ -366,7 +377,9 @@ public class MainActivity extends AppCompatActivity {
                 if (ivUserAvatar != null && !TextUtils.isEmpty(avatarUrl))
                     loadAvatarIntoView(avatarUrl);
             }
-            @Override public void onError(String err) {
+
+            @Override
+            public void onError(String err) {
                 Log.w(TAG, "fetchUserProfile: " + err);
             }
         });
@@ -381,19 +394,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Loads an avatar into ivUserAvatar using Glide (supports http/https and content URIs).
-     * Falls back to an initials-based circular bitmap when the URL fails or is empty.
+     * Loads an avatar into ivUserAvatar using Glide (supports http/https and
+     * content URIs).
+     * Falls back to an initials-based circular bitmap when the URL fails or is
+     * empty.
      *
-     * All heavy work is handled off the main thread by Glide or our executorService.
+     * All heavy work is handled off the main thread by Glide or our
+     * executorService.
      */
     private void loadAvatarIntoView(String uriString) {
-        if (ivUserAvatar == null) return;
+        if (ivUserAvatar == null)
+            return;
 
         if (!TextUtils.isEmpty(uriString) &&
                 (uriString.startsWith("http://") || uriString.startsWith("https://"))) {
             // ── Remote URL: use Glide (loads async, transitions smoothly) ────
             String displayName = (tvNavHeaderName != null)
-                    ? tvNavHeaderName.getText().toString() : "";
+                    ? tvNavHeaderName.getText().toString()
+                    : "";
             int sizePx = (int) (40 * getResources().getDisplayMetrics().density);
             Bitmap fallback = AvatarHelper.createInitialsBitmap(displayName, sizePx);
 
@@ -409,12 +427,14 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // ── No remote URL: show initials bitmap generated off main thread ─
             String displayName = (tvNavHeaderName != null)
-                    ? tvNavHeaderName.getText().toString() : "";
+                    ? tvNavHeaderName.getText().toString()
+                    : "";
             final int sizePx = (int) (40 * getResources().getDisplayMetrics().density);
             executorService.execute(() -> {
                 Bitmap bmp = AvatarHelper.createInitialsBitmap(displayName, sizePx);
                 mainHandler.post(() -> {
-                    if (ivUserAvatar != null) ivUserAvatar.setImageBitmap(bmp);
+                    if (ivUserAvatar != null)
+                        ivUserAvatar.setImageBitmap(bmp);
                 });
             });
         }
@@ -426,7 +446,8 @@ public class MainActivity extends AppCompatActivity {
      */
     @android.annotation.SuppressLint("ClickableViewAccessibility")
     private void attachSidebarElasticTouch(View view, Runnable onClick) {
-        if (view == null) return;
+        if (view == null)
+            return;
         view.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -434,7 +455,8 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_UP:
                     SidebarAnimations.scaleRelease(v);
-                    if (v.isEnabled()) onClick.run();
+                    if (v.isEnabled())
+                        onClick.run();
                     break;
                 case MotionEvent.ACTION_CANCEL:
                     SidebarAnimations.scaleCancel(v);
@@ -470,7 +492,8 @@ public class MainActivity extends AppCompatActivity {
 
         // ── Fix NestedScrollView touch conflict ──
         // When user touches the YouTube player card, tell the parent NestedScrollView
-        // to NOT intercept touch events, so the player's internal WebView receives them.
+        // to NOT intercept touch events, so the player's internal WebView receives
+        // them.
         View playerCard = findViewById(R.id.cardYouTubePlayer);
         if (playerCard != null) {
             playerCard.setOnTouchListener((v, event) -> {
@@ -493,16 +516,16 @@ public class MainActivity extends AppCompatActivity {
         // ── IFrame Player Options ──
         // These options are critical for reliable embedded playback:
         // - origin: prevents embed error 152 ("playback on other websites has been
-        //   disabled") by setting a valid origin for the IFrame
+        // disabled") by setting a valid origin for the IFrame
         // - rel(0): prevents related videos from other channels at the end
         // - ivLoadPolicy(3): hides video annotations for a cleaner player
         // - ccLoadPolicy(0): don't force closed captions
         // - enablejsapi: allows the library to control the player via JavaScript
         IFramePlayerOptions iFrameOptions = new IFramePlayerOptions.Builder(MainActivity.this)
-                .controls(1)       // Show player controls (play, pause, seek, etc.)
-                .rel(0)            // No related videos from other channels
-                .ivLoadPolicy(3)   // Hide video annotations
-                .ccLoadPolicy(0)   // Don't force closed captions
+                .controls(1) // Show player controls (play, pause, seek, etc.)
+                .rel(0) // No related videos from other channels
+                .ivLoadPolicy(3) // Hide video annotations
+                .ccLoadPolicy(0) // Don't force closed captions
                 .build();
 
         // ── Manual Initialization with Listener + IFrame Options ──
@@ -524,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(@NonNull YouTubePlayer youTubePlayer,
-                                @NonNull PlayerConstants.PlayerError error) {
+                    @NonNull PlayerConstants.PlayerError error) {
                 Log.e(TAG, "YouTube player error: " + error.name());
                 String userMessage;
                 switch (error) {
@@ -542,7 +565,8 @@ public class MainActivity extends AppCompatActivity {
                         if (error.name().equals("ERROR_REQUEST_MISSING_HTTP_REFERER")) {
                             userMessage = "Missing HTTP referrer. Playback blocked by YouTube security policies.";
                         } else {
-                            userMessage = "Video cannot be embedded or played inside the app. (Error: " + error.name() + ")";
+                            userMessage = "Video cannot be embedded or played inside the app. (Error: " + error.name()
+                                    + ")";
                         }
                         break;
                 }
@@ -574,8 +598,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setupUrlInput() {
         etYoutubeUrl.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -583,8 +612,8 @@ public class MainActivity extends AppCompatActivity {
                 String videoId = extractVideoId(input);
 
                 if (videoId != null && !videoId.equals(currentVideoId)) {
-                    currentVideoId    = videoId;
-                    currentUrl        = input;
+                    currentVideoId = videoId;
+                    currentUrl = input;
                     currentVideoTitle = "Video " + videoId;
                     unlockActionButtons();
 
@@ -611,8 +640,8 @@ public class MainActivity extends AppCompatActivity {
                     fetchVideoMetadata(videoId);
 
                 } else if (videoId == null && buttonsEnabled) {
-                    currentVideoId    = null;
-                    currentUrl        = null;
+                    currentVideoId = null;
+                    currentUrl = null;
                     currentVideoTitle = "";
                     lockActionButtons();
 
@@ -632,9 +661,9 @@ public class MainActivity extends AppCompatActivity {
     private void setupActionButtons() {
         setButtonsLocked(true);
 
-        attachElasticTouch(btnSummarize,  () -> onActionClicked("Summarize"));
+        attachElasticTouch(btnSummarize, () -> onActionClicked("Summarize"));
         attachElasticTouch(btnTranscript, () -> onActionClicked("Transcript"));
-        attachElasticTouch(btnStudyPlan,  () -> onActionClicked("Timestamps"));
+        attachElasticTouch(btnStudyPlan, () -> onActionClicked("Timestamps"));
         attachElasticTouch(btnBriefNotes, () -> onActionClicked("Chat with AI"));
     }
 
@@ -658,14 +687,15 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                                 | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        androidx.core.app.ActivityOptionsCompat options =
-                                androidx.core.app.ActivityOptionsCompat.makeCustomAnimation(
+                        androidx.core.app.ActivityOptionsCompat options = androidx.core.app.ActivityOptionsCompat
+                                .makeCustomAnimation(
                                         MainActivity.this,
                                         android.R.anim.fade_in,
                                         android.R.anim.fade_out);
                         startActivity(intent, options.toBundle());
                         finish();
                     }
+
                     @Override
                     public void onError(String errorMessage) {
                         dismissLoadingDialog();
@@ -684,14 +714,21 @@ public class MainActivity extends AppCompatActivity {
         historyAdapter.addItem(new HistoryItem(
                 action + " — " + currentVideoId,
                 currentUrl,
-                action
-        ));
+                action));
 
         switch (action) {
-            case "Summarize":   handleSummarizeAction();  break;
-            case "Transcript":  handleTranscriptAction(); break;
-            case "Timestamps":  handleTimestampsAction(); break;
-            case "Chat with AI":handleChatAction();       break;
+            case "Summarize":
+                handleSummarizeAction();
+                break;
+            case "Transcript":
+                handleTranscriptAction();
+                break;
+            case "Timestamps":
+                handleTimestampsAction();
+                break;
+            case "Chat with AI":
+                handleChatAction();
+                break;
         }
     }
 
@@ -704,8 +741,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private void handleSummarizeAction() {
         final String videoId = currentVideoId;
-        final String url     = currentUrl;
-        if (videoId == null || url == null) return;
+        final String url = currentUrl;
+        if (videoId == null || url == null)
+            return;
 
         executorService.execute(() -> {
             // Check local SQLite cache first
@@ -722,18 +760,18 @@ public class MainActivity extends AppCompatActivity {
                         .enqueue(new Callback<SummaryResponse>() {
                             @Override
                             public void onResponse(@NonNull Call<SummaryResponse> call,
-                                                   @NonNull Response<SummaryResponse> response) {
+                                    @NonNull Response<SummaryResponse> response) {
                                 dismissLoadingDialog();
                                 if (response.isSuccessful() && response.body() != null) {
                                     SummaryResponse body = response.body();
                                     if (body.success && !TextUtils.isEmpty(body.summary)) {
                                         // Cache the result locally
-                                        executorService.execute(() ->
-                                                dbHelper.insertSummary(videoId, body.summary));
+                                        executorService.execute(() -> dbHelper.insertSummary(videoId, body.summary));
                                         displayContent("Video Summary", body.summary);
                                     } else {
                                         String errMsg = !TextUtils.isEmpty(body.message)
-                                                ? body.message : "Summary generation failed";
+                                                ? body.message
+                                                : "Summary generation failed";
                                         Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_LONG).show();
                                     }
                                 } else {
@@ -743,7 +781,7 @@ public class MainActivity extends AppCompatActivity {
 
                             @Override
                             public void onFailure(@NonNull Call<SummaryResponse> call,
-                                                  @NonNull Throwable t) {
+                                    @NonNull Throwable t) {
                                 dismissLoadingDialog();
                                 handleNetworkError(t);
                             }
@@ -759,7 +797,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void handleTranscriptAction() {
         final String url = currentUrl;
-        if (url == null) return;
+        if (url == null)
+            return;
 
         showLoadingDialog("Fetching Transcript...");
         RetrofitClient.getApiService()
@@ -767,7 +806,7 @@ public class MainActivity extends AppCompatActivity {
                 .enqueue(new Callback<TranscriptResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<TranscriptResponse> call,
-                                           @NonNull Response<TranscriptResponse> response) {
+                            @NonNull Response<TranscriptResponse> response) {
                         dismissLoadingDialog();
                         if (response.isSuccessful() && response.body() != null) {
                             TranscriptResponse body = response.body();
@@ -775,7 +814,8 @@ public class MainActivity extends AppCompatActivity {
                                 displayContent("Lecture Transcript", body.transcript);
                             } else {
                                 String errMsg = !TextUtils.isEmpty(body.message)
-                                        ? body.message : "No transcript available for this video.";
+                                        ? body.message
+                                        : "No transcript available for this video.";
                                 Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_LONG).show();
                             }
                         } else {
@@ -785,7 +825,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(@NonNull Call<TranscriptResponse> call,
-                                          @NonNull Throwable t) {
+                            @NonNull Throwable t) {
                         dismissLoadingDialog();
                         handleNetworkError(t);
                     }
@@ -796,11 +836,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Calls POST /api/timestamps with { "url": currentUrl }
      * Response: { "success": bool, "video_id": str,
-     *             "timestamps": [{"time": "MM:SS", "topic": "..."}] }
+     * "timestamps": [{"time": "MM:SS", "topic": "..."}] }
      */
     private void handleTimestampsAction() {
         final String url = currentUrl;
-        if (url == null) return;
+        if (url == null)
+            return;
 
         showLoadingDialog("Extracting Timestamps...\nThis may take up to 60 seconds.");
         RetrofitClient.getApiService()
@@ -808,7 +849,7 @@ public class MainActivity extends AppCompatActivity {
                 .enqueue(new Callback<TimestampResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<TimestampResponse> call,
-                                           @NonNull Response<TimestampResponse> response) {
+                            @NonNull Response<TimestampResponse> response) {
                         dismissLoadingDialog();
                         if (response.isSuccessful() && response.body() != null) {
                             TimestampResponse body = response.body();
@@ -816,13 +857,14 @@ public class MainActivity extends AppCompatActivity {
                                 StringBuilder sb = new StringBuilder();
                                 for (TimestampResponse.TimestampItem item : body.timestamps) {
                                     sb.append("<b>").append(item.time).append("</b>")
-                                      .append("  —  ").append(item.topic)
-                                      .append("<br/><br/>");
+                                            .append("  —  ").append(item.topic)
+                                            .append("<br/><br/>");
                                 }
                                 displayContent("Lecture Timestamps", sb.toString());
                             } else {
                                 String errMsg = !TextUtils.isEmpty(body.message)
-                                        ? body.message : "No timestamps generated.";
+                                        ? body.message
+                                        : "No timestamps generated.";
                                 Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_LONG).show();
                             }
                         } else {
@@ -832,7 +874,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(@NonNull Call<TimestampResponse> call,
-                                          @NonNull Throwable t) {
+                            @NonNull Throwable t) {
                         dismissLoadingDialog();
                         handleNetworkError(t);
                     }
@@ -845,9 +887,10 @@ public class MainActivity extends AppCompatActivity {
      * ChatbotActivity uses POST /api/summary to answer user questions.
      */
     private void handleChatAction() {
-        if (currentUrl == null) return;
+        if (currentUrl == null)
+            return;
         Intent intent = new Intent(this, ChatbotActivity.class);
-        intent.putExtra(ChatbotActivity.EXTRA_VIDEO_URL,   currentUrl);
+        intent.putExtra(ChatbotActivity.EXTRA_VIDEO_URL, currentUrl);
         intent.putExtra(ChatbotActivity.EXTRA_VIDEO_TITLE, currentVideoTitle);
         startActivity(intent);
     }
@@ -856,12 +899,24 @@ public class MainActivity extends AppCompatActivity {
     private void handleHttpError(int code, String feature) {
         String msg;
         switch (code) {
-            case 400: msg = "Invalid YouTube URL sent to server.";             break;
-            case 404: msg = "API endpoint not found (HTTP 404). Check server."; break;
-            case 405: msg = "Method not allowed (HTTP 405). Check server.";    break;
-            case 422: msg = "Unprocessable request (HTTP 422).";               break;
-            case 500: msg = "Server error (HTTP 500). Check backend logs.";    break;
-            default:  msg = "HTTP error " + code + " for " + feature + ".";   break;
+            case 400:
+                msg = "Invalid YouTube URL sent to server.";
+                break;
+            case 404:
+                msg = "API endpoint not found (HTTP 404). Check server.";
+                break;
+            case 405:
+                msg = "Method not allowed (HTTP 405). Check server.";
+                break;
+            case 422:
+                msg = "Unprocessable request (HTTP 422).";
+                break;
+            case 500:
+                msg = "Server error (HTTP 500). Check backend logs.";
+                break;
+            default:
+                msg = "HTTP error " + code + " for " + feature + ".";
+                break;
         }
         Log.e(TAG, "HTTP error " + code + " for " + feature);
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
@@ -900,7 +955,8 @@ public class MainActivity extends AppCompatActivity {
                             new InputStreamReader(connection.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
-                    while ((line = reader.readLine()) != null) sb.append(line);
+                    while ((line = reader.readLine()) != null)
+                        sb.append(line);
                     reader.close();
 
                     JsonObject json = JsonParser.parseString(sb.toString()).getAsJsonObject();
@@ -912,7 +968,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.w(TAG, "Could not fetch video metadata: " + e.getMessage());
             } finally {
-                if (connection != null) connection.disconnect();
+                if (connection != null)
+                    connection.disconnect();
             }
         });
     }
@@ -922,16 +979,17 @@ public class MainActivity extends AppCompatActivity {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View sheet = getLayoutInflater().inflate(R.layout.dialog_summary_bottom_sheet, null);
 
-        TextView tvTitle   = sheet.findViewById(R.id.tvSummaryTitle);
+        TextView tvTitle = sheet.findViewById(R.id.tvSummaryTitle);
         TextView tvContent = sheet.findViewById(R.id.tvSummaryContent);
 
-        if (tvTitle != null)   tvTitle.setText(titleText);
+        if (tvTitle != null)
+            tvTitle.setText(titleText);
         if (tvContent != null) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 tvContent.setText(android.text.Html.fromHtml(contentHtml,
                         android.text.Html.FROM_HTML_MODE_LEGACY));
             } else {
-                //noinspection deprecation
+                // noinspection deprecation
                 tvContent.setText(android.text.Html.fromHtml(contentHtml));
             }
         }
@@ -940,7 +998,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Transparent parent for rounded corners
         View parent = (View) sheet.getParent();
-        if (parent != null) parent.setBackgroundColor(Color.TRANSPARENT);
+        if (parent != null)
+            parent.setBackgroundColor(Color.TRANSPARENT);
 
         dialog.show();
     }
@@ -978,8 +1037,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        if (progressMessageView != null) progressMessageView.setText(message);
-        if (!progressDialog.isShowing())  progressDialog.show();
+        if (progressMessageView != null)
+            progressMessageView.setText(message);
+        if (!progressDialog.isShowing())
+            progressDialog.show();
     }
 
     private void dismissLoadingDialog() {
@@ -994,14 +1055,16 @@ public class MainActivity extends AppCompatActivity {
 
     // ── Button Lock / Unlock ─────────────────────────────────────────────────
     private void unlockActionButtons() {
-        if (buttonsEnabled) return;
+        if (buttonsEnabled)
+            return;
         buttonsEnabled = true;
         animateButtonAlpha(ALPHA_DISABLED, ALPHA_ENABLED);
         setButtonsLocked(false);
     }
 
     private void lockActionButtons() {
-        if (!buttonsEnabled) return;
+        if (!buttonsEnabled)
+            return;
         buttonsEnabled = false;
         animateButtonAlpha(ALPHA_ENABLED, ALPHA_DISABLED);
         setButtonsLocked(true);
@@ -1032,7 +1095,8 @@ public class MainActivity extends AppCompatActivity {
     // ── Elastic Touch Micro-Interaction ──────────────────────────────────────
     @SuppressLint("ClickableViewAccessibility")
     private void attachElasticTouch(View view, Runnable onClick) {
-        if (view == null) return;
+        if (view == null)
+            return;
         view.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -1044,12 +1108,12 @@ public class MainActivity extends AppCompatActivity {
                     v.animate().scaleX(BOUNCE_SCALE).scaleY(BOUNCE_SCALE)
                             .setDuration(RELEASE_ANIM_MS / 2)
                             .setInterpolator(new OvershootInterpolator(3f))
-                            .withEndAction(() ->
-                                    v.animate().scaleX(NORMAL_SCALE).scaleY(NORMAL_SCALE)
-                                            .setDuration(RELEASE_ANIM_MS / 2)
-                                            .setInterpolator(new DecelerateInterpolator()).start()
-                            ).start();
-                    if (v.isEnabled()) onClick.run();
+                            .withEndAction(() -> v.animate().scaleX(NORMAL_SCALE).scaleY(NORMAL_SCALE)
+                                    .setDuration(RELEASE_ANIM_MS / 2)
+                                    .setInterpolator(new DecelerateInterpolator()).start())
+                            .start();
+                    if (v.isEnabled())
+                        onClick.run();
                     break;
                 case MotionEvent.ACTION_CANCEL:
                     v.animate().scaleX(NORMAL_SCALE).scaleY(NORMAL_SCALE)
@@ -1063,30 +1127,34 @@ public class MainActivity extends AppCompatActivity {
     // ── YouTube ID Extraction ────────────────────────────────────────────────
     /**
      * Extracts the 11-character YouTube video ID from various URL formats:
-     *   - https://www.youtube.com/watch?v=VIDEO_ID
-     *   - https://youtu.be/VIDEO_ID
-     *   - https://www.youtube.com/shorts/VIDEO_ID
-     *   - https://www.youtube.com/embed/VIDEO_ID
-     *   - https://www.youtube.com/live/VIDEO_ID
-     *   - Raw 11-character ID
+     * - https://www.youtube.com/watch?v=VIDEO_ID
+     * - https://youtu.be/VIDEO_ID
+     * - https://www.youtube.com/shorts/VIDEO_ID
+     * - https://www.youtube.com/embed/VIDEO_ID
+     * - https://www.youtube.com/live/VIDEO_ID
+     * - Raw 11-character ID
      */
     public static String extractVideoId(String youtubeUrl) {
-        if (TextUtils.isEmpty(youtubeUrl)) return null;
+        if (TextUtils.isEmpty(youtubeUrl))
+            return null;
 
         String trimmed = youtubeUrl.trim();
 
         // Plain 11-char video ID
-        if (trimmed.matches("[a-zA-Z0-9_-]{11}")) return trimmed;
+        if (trimmed.matches("[a-zA-Z0-9_-]{11}"))
+            return trimmed;
 
         // Standard URL patterns
         String pattern = "(?<=watch\\?v=|/videos/|/embed/|/shorts/|/live/|youtu\\.be/)[a-zA-Z0-9_-]{11}";
         @SuppressWarnings("RegExpRedundantEscape")
         Matcher m = Pattern.compile(pattern).matcher(trimmed);
-        if (m.find()) return m.group();
+        if (m.find())
+            return m.group();
 
         // Fallback
         m = Pattern.compile("(?:v=|/)([a-zA-Z0-9_-]{11})").matcher(trimmed);
-        if (m.find()) return m.group(1);
+        if (m.find())
+            return m.group(1);
 
         return null;
     }
