@@ -20,14 +20,14 @@
             border: 1px solid #3b3267;
             padding: 14px 24px;
             border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.25);
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 14px;
             font-weight: 500;
             z-index: 1000;
-            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
             opacity: 0;
             pointer-events: none;
         }
@@ -41,7 +41,7 @@
         .toast.success { border-color: #22c55e; color: #4ade80; }
         .toast.error { border-color: #ef4444; color: #f87171; }
 
-        /* Card Container */
+        /* Main Card Container */
         .card { background: #131124; border: 1px solid #231f42; border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); text-align: center; }
         h2 { font-size: 24px; margin-bottom: 8px; color: #a855f7; font-weight: 700; }
         p.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
@@ -78,7 +78,10 @@
             transition: color 0.2s;
         }
         .eye-btn:hover { color: #a855f7; }
-        .eye-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .eye-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+        
+        /* Utility for hiding icons */
+        .hidden { display: none !important; }
 
         /* Submit Button */
         button.submit-btn {
@@ -94,8 +97,8 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             margin-top: 8px;
         }
-        button.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35); }
-        button.submit-btn:active:not(:disabled) { transform: translateY(0); }
+        button.submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35); }
+        button.submit-btn:active { transform: translateY(0); }
         button.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
     </style>
 </head>
@@ -112,16 +115,18 @@
 
         <form id="reset-form">
             <div class="input-group">
-                <input type="password" id="new-password" placeholder="New Password" required minlength="6" autocomplete="new-password">
-                <button type="button" class="eye-btn" onclick="toggleVisibility('new-password', this)" title="Toggle Password" aria-label="Toggle password visibility">
-                    <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <input type="password" id="new-password" placeholder="New Password" required minlength="6">
+                <button type="button" class="eye-btn" onclick="toggleVisibility('new-password', this)" aria-label="Toggle Password">
+                    <svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off hidden" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                 </button>
             </div>
 
             <div class="input-group">
-                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6" autocomplete="new-password">
-                <button type="button" class="eye-btn" onclick="toggleVisibility('confirm-password', this)" title="Toggle Password" aria-label="Toggle confirm password visibility">
-                    <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6">
+                <button type="button" class="eye-btn" onclick="toggleVisibility('confirm-password', this)" aria-label="Toggle Password">
+                    <svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off hidden" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                 </button>
             </div>
 
@@ -145,22 +150,25 @@
             }
         });
 
-        // 2. Eye Visibility Toggle Function
+        // 2. Eye Visibility Toggle Function (Switches Input Type & Icon Slashes)
         function toggleVisibility(inputId, btn) {
             const input = document.getElementById(inputId);
             if (!input) return;
-            const currentType = input.getAttribute('type') || input.type;
-            
-            if (currentType === 'password') {
-                input.setAttribute('type', 'text');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            const eyeIcon = btn.querySelector('.icon-eye');
+            const eyeOffIcon = btn.querySelector('.icon-eye-off');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (eyeIcon) eyeIcon.classList.add('hidden');
+                if (eyeOffIcon) eyeOffIcon.classList.remove('hidden');
             } else {
-                input.setAttribute('type', 'password');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+                input.type = 'password';
+                if (eyeOffIcon) eyeOffIcon.classList.add('hidden');
+                if (eyeIcon) eyeIcon.classList.remove('hidden');
             }
         }
 
-        // 3. Smooth Toast Pop-Up Helper
+        // 3. Animated Toast Message Function
         let toastTimeout = null;
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -232,7 +240,7 @@
                     submitBtn.disabled = false;
                     submitBtn.innerText = 'Update Password';
                 } else {
-                    showToast('Password updated successfully!', 'success');
+                    showToast('Password reset successfully!', 'success');
                     submitBtn.innerText = 'Updated!';
                     form.reset();
                 }
