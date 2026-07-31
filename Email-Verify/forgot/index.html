@@ -1,137 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password | NOA AI</title>
-    <!-- Include Supabase JS SDK v2 -->
+    <title>Reset Password - NOA AI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-color: #080510;
-            --card-bg: rgba(18, 12, 36, 0.88);
-            --border-color: rgba(188, 19, 254, 0.25);
-            --primary-accent: #bc13fe;
-            --secondary-accent: #7b12ff;
-            --glow-color: rgba(188, 19, 254, 0.4);
-            --text-main: #f3edfd;
-            --text-muted: #9c8eb9;
-            --input-bg: #07040e;
-            --success-bg: rgba(16, 185, 129, 0.15);
-            --success-border: rgba(16, 185, 129, 0.4);
-            --success-text: #34d399;
-            --error-bg: rgba(239, 68, 68, 0.15);
-            --error-border: rgba(239, 68, 68, 0.4);
-            --error-text: #f87171;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 15% 15%, rgba(123, 18, 255, 0.2) 0%, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(188, 19, 254, 0.18) 0%, transparent 45%);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 440px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px 32px;
-            box-shadow: 
-                0 16px 48px rgba(0, 0, 0, 0.6),
-                0 0 30px var(--glow-color);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            text-align: center;
-            animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-wrapper {
-            margin-bottom: 24px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .logo-hexagon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--primary-accent) 0%, var(--secondary-accent) 100%);
-            clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 20px rgba(188, 19, 254, 0.5);
-        }
-
-        .logo-icon {
-            font-size: 28px;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
+            background-color: #090713;
             color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Floating Animated Pop-up Toast */
+        .toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1b3a;
+            border: 1px solid #3b3267;
+            padding: 14px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(168, 85, 247, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            top: 24px;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast.success {
+            border-color: #22c55e;
+            color: #4ade80;
+        }
+
+        .toast.error {
+            border-color: #ef4444;
+            color: #f87171;
+        }
+
+        /* Main Card Container */
+        .card {
+            background: #131124;
+            border: 1px solid #231f42;
+            border-radius: 20px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 24px;
             margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            color: #a855f7;
+            font-weight: 700;
         }
 
         p.subtitle {
-            color: var(--text-muted);
+            color: #94a3b8;
             font-size: 14px;
+            margin-bottom: 28px;
             line-height: 1.5;
-            margin-bottom: 24px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        /* Input Field Wrappers */
+        .input-group {
+            position: relative;
+            margin-bottom: 18px;
             text-align: left;
         }
 
-        .form-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-wrapper input {
+        .input-group input {
             width: 100%;
-            padding: 14px 16px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
+            padding: 14px 48px 14px 16px;
+            background: #090713;
+            border: 1px solid #28234a;
             border-radius: 12px;
             color: #ffffff;
             font-size: 15px;
@@ -139,234 +108,200 @@
             transition: all 0.2s ease;
         }
 
-        .input-wrapper input:focus {
-            border-color: var(--primary-accent);
-            box-shadow: 0 0 12px var(--glow-color);
+        .input-group input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
         }
 
-        .input-wrapper input::placeholder {
-            color: #5c5575;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--primary-accent) 0%, var(--secondary-accent) 100%);
-            color: #ffffff;
+        /* Eye Icon Toggle Button */
+        .eye-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
+            color: #64748b;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 20px rgba(188, 19, 254, 0.35);
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(188, 19, 254, 0.5);
-        }
-
-        .btn-submit:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Banner styles */
-        .banner {
-            display: none;
-            padding: 14px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.4;
-            margin-bottom: 20px;
-            align-items: center;
-            gap: 10px;
-            text-align: left;
-            animation: bannerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes bannerSlideIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .banner-success {
-            background-color: var(--success-bg);
-            border: 1px solid var(--success-border);
-            color: var(--success-text);
-        }
-
-        .banner-error {
-            background-color: var(--error-bg);
-            border: 1px solid var(--error-border);
-            color: var(--error-text);
-        }
-
-        .banner-icon {
-            flex-shrink: 0;
-            width: 20px;
-            height: 20px;
+            padding: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: color 0.2s;
         }
 
-        .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #ffffff;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-            margin-right: 8px;
+        .eye-btn:hover {
+            color: #a855f7;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .eye-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+        /* Utility for hiding icons */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Submit Button */
+        button.submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 8px;
+        }
+
+        button.submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35);
+        }
+
+        button.submit-btn:active {
+            transform: translateY(0);
+        }
+
+        button.submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="logo-wrapper">
-                <div class="logo-hexagon">
-                    <span class="logo-icon">🔑</span>
-                </div>
+
+    <div id="toast" class="toast">
+        <span id="toast-icon">✨</span>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
+    <div class="card">
+        <h2>Reset Password 🔐</h2>
+        <p class="subtitle">Please enter your new secure password below to update your NOA AI credentials.</p>
+
+        <form id="reset-form">
+            <div class="input-group">
+                <input type="password" id="new-password" placeholder="New Password" required minlength="6">
+                <button type="button" class="eye-btn" onclick="toggleVisibility('new-password', this)"
+                    aria-label="Toggle Password">
+                    <svg class="icon-eye" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="icon-eye-off hidden" viewBox="0 0 24 24">
+                        <path
+                            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24">
+                        </path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
             </div>
 
-            <h1>Forgot Password</h1>
-            <p class="subtitle">Enter your account email address and we'll send you a password reset link.</p>
-
-            <!-- Inline UI Notification Banner -->
-            <div id="statusBanner" class="banner">
-                <span id="bannerIcon" class="banner-icon"></span>
-                <span id="bannerText"></span>
+            <div class="input-group">
+                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6">
+                <button type="button" class="eye-btn" onclick="toggleVisibility('confirm-password', this)"
+                    aria-label="Toggle Password">
+                    <svg class="icon-eye" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="icon-eye-off hidden" viewBox="0 0 24 24">
+                        <path
+                            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24">
+                        </path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
             </div>
 
-            <form id="forgotPasswordForm" onsubmit="handleRequestResetLink(event)">
-                <div class="form-group">
-                    <label class="form-label" for="emailInput">Email Address</label>
-                    <div class="input-wrapper">
-                        <input type="email" id="emailInput" placeholder="name@example.com" required autocomplete="email" />
-                    </div>
-                </div>
-
-                <button type="submit" id="submitBtn" class="btn-submit">Send Reset Link</button>
-            </form>
-        </div>
+            <button type="submit" id="submit-btn" class="submit-btn">Update Password</button>
+        </form>
     </div>
 
     <script>
-        // Supabase Credentials
-        const SUPABASE_URL = "https://lumbpfcruwjqudtdbkrm.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_";
+        // 1. Initialize Supabase
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let supabase = null;
+        // 2. Eye Visibility Toggle Function (Switches Input Type & Icon Slashes)
+        function toggleVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = btn.querySelector('.icon-eye');
+            const eyeOffIcon = btn.querySelector('.icon-eye-off');
 
-        // Initialize Supabase Client
-        if (window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!supabase && window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        });
-
-        function showBanner(type, message) {
-            const banner = document.getElementById('statusBanner');
-            const bannerText = document.getElementById('bannerText');
-            const bannerIcon = document.getElementById('bannerIcon');
-
-            banner.className = 'banner ' + (type === 'success' ? 'banner-success' : 'banner-error');
-            bannerText.textContent = message;
-
-            if (type === 'success') {
-                bannerIcon.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
             } else {
-                bannerIcon.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+                input.type = 'password';
+                eyeOffIcon.classList.add('hidden');
+                eyeIcon.classList.remove('hidden');
             }
-
-            banner.style.display = 'flex';
         }
 
-        function hideBanner() {
-            const banner = document.getElementById('statusBanner');
-            if (banner) banner.style.display = 'none';
+        // 3. Animated Toast Message Function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = message;
+            toastIcon.innerText = type === 'success' ? '✅' : '⚠️';
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
         }
 
-        async function handleRequestResetLink(event) {
-            event.preventDefault();
+        // 4. Form Submit Handler
+        const form = document.getElementById('reset-form');
+        const submitBtn = document.getElementById('submit-btn');
 
-            const email = document.getElementById('emailInput').value.trim();
-            const submitBtn = document.getElementById('submitBtn');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-            hideBanner();
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
 
-            if (!email) {
-                showBanner('error', 'Please enter a valid email address.');
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match!', 'error');
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<span class="spinner"></span> Sending...`;
+            submitBtn.innerText = 'Updating...';
 
-            // Explicit timeout handling using AbortController (12-second timeout)
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
 
-            try {
-                if (!supabase && window.supabase) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                }
-
-                if (!supabase) {
-                    throw new Error("Supabase client failed to initialize.");
-                }
-
-                // Request password reset email with exact redirect URL
-                const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: 'https://noaai.dpdns.org/reset'
-                });
-
-                clearTimeout(timeoutId);
-
-                if (error) {
-                    // Check for 504 Gateway Timeout or SMTP delays
-                    if (error.status === 504 || error.message?.includes('504') || error.message?.toLowerCase().includes('gateway')) {
-                        showBanner('error', 'The email server took longer than expected to respond. Please check your inbox (and spam folder) or try again in a few moments.');
-                    } else {
-                        showBanner('error', error.message || 'Unable to process password reset request. Please try again.');
-                    }
-                } else {
-                    showBanner('success', 'Check your inbox (and spam folder) for the password reset link!');
-                    document.getElementById('forgotPasswordForm').reset();
-                }
-            } catch (err) {
-                clearTimeout(timeoutId);
-                console.error("Password reset request error:", err);
-
-                if (err.name === 'AbortError' || err.message?.includes('504') || err.message?.toLowerCase().includes('timeout')) {
-                    showBanner('error', 'The email delivery service is taking longer than expected. Please check your inbox (and spam folder) or try again in a few moments.');
-                } else {
-                    showBanner('error', err.message || 'An error occurred while sending the reset link. Please try again.');
-                }
-            } finally {
+            if (error) {
+                showToast(error.message, 'error');
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = `Send Reset Link`;
+                submitBtn.innerText = 'Update Password';
+            } else {
+                showToast('Password reset successfully!', 'success');
+                submitBtn.innerText = 'Updated!';
+                form.reset();
             }
-        }
+        });
     </script>
 </body>
+
 </html>
