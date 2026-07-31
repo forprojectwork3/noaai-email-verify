@@ -115,7 +115,7 @@
 
         <form id="reset-form">
             <div class="input-group">
-                <input type="password" id="new-password" placeholder="New Password" required minlength="6">
+                <input type="password" id="new-password" placeholder="New Password" required minlength="6" autocomplete="new-password">
                 <button type="button" class="eye-btn" onclick="toggleVisibility('new-password', this)" aria-label="Toggle Password">
                     <svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <svg class="icon-eye-off hidden" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
@@ -123,7 +123,7 @@
             </div>
 
             <div class="input-group">
-                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6">
+                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6" autocomplete="new-password">
                 <button type="button" class="eye-btn" onclick="toggleVisibility('confirm-password', this)" aria-label="Toggle Password">
                     <svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <svg class="icon-eye-off hidden" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
@@ -135,7 +135,7 @@
     </div>
 
     <script>
-        // 1. Initialize Supabase
+        // 1. Initialize Supabase Client
         const SUPABASE_URL = 'https://lumbpfcruwjqudtdbkrm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
         let supabase = null;
@@ -150,7 +150,7 @@
             }
         });
 
-        // 2. Eye Visibility Toggle Function (Switches Input Type & Icon Slashes)
+        // 2. Eye Visibility Toggle Function
         function toggleVisibility(inputId, btn) {
             const input = document.getElementById(inputId);
             if (!input) return;
@@ -158,17 +158,17 @@
             const eyeOffIcon = btn.querySelector('.icon-eye-off');
 
             if (input.type === 'password') {
-                input.type = 'text';
+                input.setAttribute('type', 'text');
                 if (eyeIcon) eyeIcon.classList.add('hidden');
                 if (eyeOffIcon) eyeOffIcon.classList.remove('hidden');
             } else {
-                input.type = 'password';
+                input.setAttribute('type', 'password');
                 if (eyeOffIcon) eyeOffIcon.classList.add('hidden');
                 if (eyeIcon) eyeIcon.classList.remove('hidden');
             }
         }
 
-        // 3. Animated Toast Message Function
+        // 3. Smooth Toast Pop-Up Helper
         let toastTimeout = null;
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -219,7 +219,7 @@
                     throw new Error("Supabase client failed to initialize.");
                 }
 
-                // Handle session tokens (#access_token=...&refresh_token=...) if present in URL
+                // Handle session tokens (#access_token=...&refresh_token=...) if redirected from reset email
                 const hash = window.location.hash;
                 if (hash && hash.includes('access_token=')) {
                     const params = new URLSearchParams(hash.substring(1));
