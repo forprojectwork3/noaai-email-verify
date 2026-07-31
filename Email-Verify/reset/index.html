@@ -3,132 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - NOA AI</title>
+    <title>Reset Password – NOA AI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        /* ── Reset & Base ───────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: #090713;
-            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Helvetica, Arial, sans-serif;
+            background: #090713;
+            color: #fff;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
         }
 
-        /* ── Floating Toast ─────────────────────────────── */
-        #toast {
+        /* ── Floating Toast ─────────────────────────────────────────────── */
+        #noa-toast {
             position: fixed;
             top: -120px;
             left: 50%;
             transform: translateX(-50%);
             background: #1e1b3a;
             border: 1px solid #3b3267;
-            padding: 14px 24px;
-            border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 20px rgba(168, 85, 247, 0.25);
+            padding: 13px 26px;
+            border-radius: 999px;
+            box-shadow: 0 12px 32px rgba(0,0,0,.55),
+                        0 0 20px rgba(168,85,247,.25);
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 14px;
             font-weight: 500;
+            white-space: nowrap;
             z-index: 9999;
-            transition: top 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
             opacity: 0;
             pointer-events: none;
-            white-space: nowrap;
+            transition: top .45s cubic-bezier(.175,.885,.32,1.275),
+                        opacity .3s ease;
         }
+        #noa-toast.visible        { top: 24px; opacity: 1; pointer-events: auto; }
+        #noa-toast.type-success   { border-color: #22c55e; color: #4ade80; }
+        #noa-toast.type-error     { border-color: #ef4444; color: #f87171; }
 
-        #toast.show {
-            top: 24px;
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #toast.success { border-color: #22c55e; color: #4ade80; }
-        #toast.error   { border-color: #ef4444; color: #f87171; }
-
-        /* ── Card ──────────────────────────────────────── */
+        /* ── Card ───────────────────────────────────────────────────────── */
         .card {
             background: #131124;
             border: 1px solid #231f42;
             border-radius: 20px;
-            padding: 36px 32px;
+            padding: 38px 32px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0,0,0,.6);
             text-align: center;
         }
 
-        h2 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            color: #a855f7;
+        .card h1 {
+            font-size: 22px;
             font-weight: 700;
+            color: #a855f7;
+            margin-bottom: 8px;
         }
 
-        p.subtitle {
+        .card p {
             color: #94a3b8;
             font-size: 14px;
+            line-height: 1.55;
             margin-bottom: 28px;
-            line-height: 1.5;
         }
 
-        /* ── Input group ────────────────────────────────── */
-        .input-group {
+        /* ── Input Groups ───────────────────────────────────────────────── */
+        .field {
             position: relative;
             margin-bottom: 18px;
             text-align: left;
         }
 
-        .input-group input {
+        .field input {
             width: 100%;
-            padding: 14px 48px 14px 16px;
+            padding: 14px 50px 14px 16px;
             background: #090713;
             border: 1px solid #28234a;
             border-radius: 12px;
-            color: #ffffff;
+            color: #fff;
             font-size: 15px;
             outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: border-color .2s, box-shadow .2s;
         }
-
-        .input-group input:focus {
+        .field input:focus {
             border-color: #a855f7;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+            box-shadow: 0 0 0 3px rgba(168,85,247,.2);
         }
+        .field input::placeholder { color: #64748b; }
 
-        /* ── Eye toggle button ─────────────────────────── */
+        /* ── Eye Toggle ─────────────────────────────────────────────────── */
         .eye-btn {
             position: absolute;
-            right: 14px;
+            right: 13px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
             color: #64748b;
             cursor: pointer;
-            padding: 4px;
+            padding: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: color 0.2s;
-            line-height: 0;
+            border-radius: 6px;
+            transition: color .2s;
         }
-
         .eye-btn:hover { color: #a855f7; }
-
         .eye-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 19px;
+            height: 19px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
@@ -137,180 +129,189 @@
             pointer-events: none;
             display: block;
         }
+        /* hide/show icon pair */
+        .icon-off { display: none; }
 
-        .hidden { display: none !important; }
-
-        /* ── Submit button ─────────────────────────────── */
-        .submit-btn {
+        /* ── Submit Button ──────────────────────────────────────────────── */
+        #submit-btn {
             width: 100%;
             padding: 14px;
+            margin-top: 6px;
             background: linear-gradient(135deg, #a855f7, #7c3aed);
             border: none;
             border-radius: 12px;
-            color: #ffffff;
-            font-weight: 600;
+            color: #fff;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            margin-top: 8px;
+            transition: transform .2s, box-shadow .2s;
         }
-
-        .submit-btn:hover:not(:disabled) {
+        #submit-btn:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.35);
+            box-shadow: 0 8px 22px rgba(168,85,247,.35);
         }
-
-        .submit-btn:active:not(:disabled) { transform: translateY(0); }
-
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        #submit-btn:active:not(:disabled) { transform: translateY(0); }
+        #submit-btn:disabled { opacity: .55; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <!-- Floating Toast -->
-    <div id="toast">
-        <span id="toast-icon"></span>
-        <span id="toast-msg"></span>
+    <!-- ── Toast notification ───────────────────────────────────────────── -->
+    <div id="noa-toast" role="alert" aria-live="polite">
+        <span id="noa-toast-icon"></span>
+        <span id="noa-toast-msg">Notification</span>
     </div>
 
-    <!-- Reset Card -->
+    <!-- ── Reset card ───────────────────────────────────────────────────── -->
     <div class="card">
-        <h2>Reset Password 🔐</h2>
-        <p class="subtitle">Enter your new secure password to update your NOA AI account.</p>
+        <h1>Reset Password 🔐</h1>
+        <p>Enter your new secure password to update your NOA AI account.</p>
 
-        <form id="reset-form">
-            <!-- New Password -->
-            <div class="input-group">
-                <input type="password" id="new-password" placeholder="New Password" required minlength="6" autocomplete="new-password">
-                <button type="button" class="eye-btn" id="toggle-new" aria-label="Show/hide password">
-                    <!-- Eye open -->
-                    <svg class="icon-eye" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
+        <form id="reset-form" novalidate>
+
+            <!-- New password -->
+            <div class="field">
+                <input
+                    type="password"
+                    id="inp-new"
+                    placeholder="New Password"
+                    autocomplete="new-password"
+                    minlength="6"
+                    required
+                >
+                <button type="button" class="eye-btn" id="eye-new" aria-label="Toggle new password visibility">
+                    <!-- open eye -->
+                    <svg class="icon-on" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    <!-- Eye slash -->
-                    <svg class="icon-eye-off hidden" viewBox="0 0 24 24">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path>
-                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    <!-- slashed eye -->
+                    <svg class="icon-off" viewBox="0 0 24 24">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Confirm Password -->
-            <div class="input-group">
-                <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6" autocomplete="new-password">
-                <button type="button" class="eye-btn" id="toggle-confirm" aria-label="Show/hide confirm password">
-                    <svg class="icon-eye" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
+            <!-- Confirm password -->
+            <div class="field">
+                <input
+                    type="password"
+                    id="inp-confirm"
+                    placeholder="Confirm New Password"
+                    autocomplete="new-password"
+                    minlength="6"
+                    required
+                >
+                <button type="button" class="eye-btn" id="eye-confirm" aria-label="Toggle confirm password visibility">
+                    <svg class="icon-on" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    <svg class="icon-eye-off hidden" viewBox="0 0 24 24">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path>
-                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    <svg class="icon-off" viewBox="0 0 24 24">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
                     </svg>
                 </button>
             </div>
 
-            <button type="submit" id="submit-btn" class="submit-btn">Update Password</button>
+            <button type="submit" id="submit-btn">Update Password</button>
         </form>
     </div>
 
     <script>
-        // ── 1. Supabase Init ─────────────────────────────────────────────────
-        const SUPABASE_URL     = 'https://lumbpfcruwjqudtdbkrm.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    (function () {
+        'use strict';
 
-        // ── 2. Session recovery from URL hash ────────────────────────────────
-        // Supabase automatically parses #access_token from the hash when
-        // onAuthStateChange fires with the SIGNED_IN / PASSWORD_RECOVERY event.
-        supabase.auth.onAuthStateChange((event, session) => {
+        /* ── Supabase client ──────────────────────────────────────────────── */
+        var SUPABASE_URL      = 'https://lumbpfcruwjqudtdbkrm.supabase.co';
+        var SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
+        var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        /* ── Auth-state listener: captures #access_token from email link ─── */
+        sb.auth.onAuthStateChange(function (event, session) {
             if (event === 'PASSWORD_RECOVERY') {
-                // Session is now active; user can safely call updateUser.
-                console.log('Password recovery session active.');
+                // Session is now live – updateUser() will work.
+                console.info('[NOA] PASSWORD_RECOVERY session active.');
             }
         });
 
-        // ── 3. Toast helper ──────────────────────────────────────────────────
-        let _toastTimer = null;
-        function showToast(message, type) {
-            const toast    = document.getElementById('toast');
-            const iconEl   = document.getElementById('toast-icon');
-            const msgEl    = document.getElementById('toast-msg');
+        /* ── Toast ────────────────────────────────────────────────────────── */
+        var _toastTimer = null;
+        function showToast(msg, type) {
+            var el   = document.getElementById('noa-toast');
+            var icon = document.getElementById('noa-toast-icon');
+            var txt  = document.getElementById('noa-toast-msg');
 
-            iconEl.textContent = type === 'success' ? '✅' : '⚠️';
-            msgEl.textContent  = message;
-            toast.className    = 'show ' + type;
+            icon.textContent = (type === 'success') ? '✅' : '⚠️';
+            txt.textContent  = msg;
+
+            // Remove previous state classes
+            el.classList.remove('visible', 'type-success', 'type-error');
+            // Force reflow so the re-add triggers the transition
+            void el.offsetHeight;
+            el.classList.add('visible', 'type-' + type);
 
             if (_toastTimer) clearTimeout(_toastTimer);
-            _toastTimer = setTimeout(() => {
-                toast.className = '';
+            _toastTimer = setTimeout(function () {
+                el.classList.remove('visible', 'type-success', 'type-error');
             }, 4500);
         }
 
-        // ── 4. Eye-toggle (JS event listeners — no inline onclick) ───────────
-        function wireEyeToggle(btnId, inputId) {
-            const btn       = document.getElementById(btnId);
-            const input     = document.getElementById(inputId);
-            const eyeOpen   = btn.querySelector('.icon-eye');
-            const eyeSlash  = btn.querySelector('.icon-eye-off');
+        /* ── Eye-toggle helper ────────────────────────────────────────────── */
+        function attachEyeToggle(btnId, inputId) {
+            var btn   = document.getElementById(btnId);
+            var input = document.getElementById(inputId);
+            var on    = btn.querySelector('.icon-on');
+            var off   = btn.querySelector('.icon-off');
 
             btn.addEventListener('click', function () {
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    eyeOpen.classList.add('hidden');
-                    eyeSlash.classList.remove('hidden');
-                } else {
-                    input.type = 'password';
-                    eyeSlash.classList.add('hidden');
-                    eyeOpen.classList.remove('hidden');
-                }
+                var showing = input.type === 'text';
+                input.type    = showing ? 'password' : 'text';
+                on.style.display  = showing ? 'block' : 'none';
+                off.style.display = showing ? 'none'  : 'block';
             });
         }
 
-        wireEyeToggle('toggle-new',     'new-password');
-        wireEyeToggle('toggle-confirm', 'confirm-password');
+        attachEyeToggle('eye-new',     'inp-new');
+        attachEyeToggle('eye-confirm', 'inp-confirm');
 
-        // ── 5. Form submit ───────────────────────────────────────────────────
-        const form      = document.getElementById('reset-form');
-        const submitBtn = document.getElementById('submit-btn');
+        /* ── Form submit ──────────────────────────────────────────────────── */
+        var form = document.getElementById('reset-form');
+        var btn  = document.getElementById('submit-btn');
 
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const newPassword     = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
+            var newPwd     = document.getElementById('inp-new').value.trim();
+            var confirmPwd = document.getElementById('inp-confirm').value.trim();
 
-            if (newPassword.length < 6) {
+            if (newPwd.length < 6) {
                 showToast('Password must be at least 6 characters.', 'error');
                 return;
             }
-
-            if (newPassword !== confirmPassword) {
+            if (newPwd !== confirmPwd) {
                 showToast('Passwords do not match!', 'error');
                 return;
             }
 
-            submitBtn.disabled   = true;
-            submitBtn.textContent = 'Updating…';
+            btn.disabled     = true;
+            btn.textContent  = 'Updating…';
 
-            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            var result = await sb.auth.updateUser({ password: newPwd });
 
-            if (error) {
-                showToast(error.message || 'Failed to update password.', 'error');
-                submitBtn.disabled    = false;
-                submitBtn.textContent = 'Update Password';
+            if (result.error) {
+                showToast(result.error.message || 'Update failed. Please try again.', 'error');
+                btn.disabled    = false;
+                btn.textContent = 'Update Password';
             } else {
                 showToast('✅ Password reset successfully!', 'success');
-                submitBtn.textContent = 'Updated!';
+                btn.textContent = 'Done ✓';
                 form.reset();
             }
         });
+
+    })();
     </script>
 </body>
 </html>
