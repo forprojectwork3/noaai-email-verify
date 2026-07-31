@@ -119,18 +119,12 @@
         }
         .eye-btn:hover { color: #a855f7; }
         .eye-btn svg {
-            width: 19px;
-            height: 19px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
             pointer-events: none;
             display: inline-block;
+            vertical-align: middle;
         }
-        /* slashed-eye hidden by default — !important beats the svg rule above */
-        .eye-btn svg.icon-off { display: none !important; }
+        /* Slash-eye hidden on load; JS overrides via style.display */
+        .eye-btn svg.icon-eye-off { display: none !important; }
 
         /* ── Submit Button ──────────────────────────────────────────────── */
         #submit-btn {
@@ -180,15 +174,22 @@
                     required
                 >
                 <button type="button" class="eye-btn" id="eye-new" aria-label="Toggle new password visibility">
-                    <!-- open eye -->
-                    <svg class="icon-on" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
+                    <!-- open eye (shown by default) -->
+                    <svg class="icon-eye"
+                         width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
                     </svg>
-                    <!-- slashed eye (hidden on load) -->
-                    <svg class="icon-off" viewBox="0 0 24 24" style="display:none">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    <!-- slashed eye (hidden by default) -->
+                    <svg class="icon-eye-off"
+                         width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         style="display:none">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
                     </svg>
                 </button>
             </div>
@@ -204,13 +205,22 @@
                     required
                 >
                 <button type="button" class="eye-btn" id="eye-confirm" aria-label="Toggle confirm password visibility">
-                    <svg class="icon-on" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
+                    <!-- open eye (shown by default) -->
+                    <svg class="icon-eye"
+                         width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
                     </svg>
-                    <svg class="icon-off" viewBox="0 0 24 24" style="display:none">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    <!-- slashed eye (hidden by default) -->
+                    <svg class="icon-eye-off"
+                         width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         style="display:none">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
                     </svg>
                 </button>
             </div>
@@ -262,20 +272,18 @@
         function attachEyeToggle(btnId, inputId) {
             var btn   = document.getElementById(btnId);
             var input = document.getElementById(inputId);
-            var on    = btn.querySelector('.icon-on');
-            var off   = btn.querySelector('.icon-off');
+            var eyeOpen  = btn.querySelector('.icon-eye');
+            var eyeSlash = btn.querySelector('.icon-eye-off');
 
-            // Ensure correct initial state regardless of CSS load order
-            on.style.display  = 'inline-block';
-            off.style.display = 'none';
+            // Enforce initial state via JS (overrides any CSS cascade)
+            eyeOpen.style.display  = 'inline-block';
+            eyeSlash.style.display = 'none';
 
             btn.addEventListener('click', function () {
-                var isPassword = input.type === 'password';
-                // Switch input type
+                var isPassword = (input.type === 'password');
                 input.type = isPassword ? 'text' : 'password';
-                // Show slash-eye when text is visible, open-eye when hidden
-                on.style.display  = isPassword ? 'none'         : 'inline-block';
-                off.style.display = isPassword ? 'inline-block' : 'none';
+                eyeOpen.style.display  = isPassword ? 'none'         : 'inline-block';
+                eyeSlash.style.display = isPassword ? 'inline-block' : 'none';
             });
         }
 
