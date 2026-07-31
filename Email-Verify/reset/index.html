@@ -127,10 +127,10 @@
             stroke-linecap: round;
             stroke-linejoin: round;
             pointer-events: none;
-            display: block;
+            display: inline-block;
         }
-        /* hide/show icon pair */
-        .icon-off { display: none; }
+        /* slashed-eye hidden by default — !important beats the svg rule above */
+        .eye-btn svg.icon-off { display: none !important; }
 
         /* ── Submit Button ──────────────────────────────────────────────── */
         #submit-btn {
@@ -185,8 +185,8 @@
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    <!-- slashed eye -->
-                    <svg class="icon-off" viewBox="0 0 24 24">
+                    <!-- slashed eye (hidden on load) -->
+                    <svg class="icon-off" viewBox="0 0 24 24" style="display:none">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"/>
                         <line x1="1" y1="1" x2="23" y2="23"/>
                     </svg>
@@ -208,7 +208,7 @@
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    <svg class="icon-off" viewBox="0 0 24 24">
+                    <svg class="icon-off" viewBox="0 0 24 24" style="display:none">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 9.9a3 3 0 0 1 4.24 4.24"/>
                         <line x1="1" y1="1" x2="23" y2="23"/>
                     </svg>
@@ -265,11 +265,17 @@
             var on    = btn.querySelector('.icon-on');
             var off   = btn.querySelector('.icon-off');
 
+            // Ensure correct initial state regardless of CSS load order
+            on.style.display  = 'inline-block';
+            off.style.display = 'none';
+
             btn.addEventListener('click', function () {
-                var showing = input.type === 'text';
-                input.type    = showing ? 'password' : 'text';
-                on.style.display  = showing ? 'block' : 'none';
-                off.style.display = showing ? 'none'  : 'block';
+                var isPassword = input.type === 'password';
+                // Switch input type
+                input.type = isPassword ? 'text' : 'password';
+                // Show slash-eye when text is visible, open-eye when hidden
+                on.style.display  = isPassword ? 'none'         : 'inline-block';
+                off.style.display = isPassword ? 'inline-block' : 'none';
             });
         }
 
