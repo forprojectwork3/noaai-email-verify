@@ -209,15 +209,25 @@
         /* ── Supabase client ──────────────────────────────────────────────── */
         var SUPABASE_URL      = 'https://lumbpfcruwjqudtdbkrm.supabase.co';
         var SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
-        var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        /* ── Auth-state listener: captures #access_token from email link ─── */
-        sb.auth.onAuthStateChange(function (event, session) {
-            if (event === 'PASSWORD_RECOVERY') {
-                // Session is now live – updateUser() will work.
-                console.info('[NOA] PASSWORD_RECOVERY session active.');
-            }
+        let hasRecoverySession = false;
+
+        // Detect session initialization from URL token
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'PASSWORD_RECOVERY' || session) {
+            hasRecoverySession = true;
+          }
         });
+
+        // Check existing session on load
+        async function checkSession() {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            hasRecoverySession = true;
+          }
+        }
+        checkSession();
 
         /* ── Toast ────────────────────────────────────────────────────────── */
         var _toastTimer = null;
@@ -260,36 +270,45 @@
         attachEyeToggle('toggle-confirm-btn', 'inp-confirm');
 
         /* ── Form submit ──────────────────────────────────────────────────── */
-        var form = document.getElementById('reset-form');
-        var btn  = document.getElementById('submit-btn');
+        var form      = document.getElementById('reset-form');
+        var submitBtn = document.getElementById('submit-btn');
 
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            var newPwd     = document.getElementById('inp-new').value.trim();
-            var confirmPwd = document.getElementById('inp-confirm').value.trim();
+            var newPassword = document.getElementById('inp-new').value.trim();
+            var confirmPwd  = document.getElementById('inp-confirm').value.trim();
 
-            if (newPwd.length < 6) {
+            if (newPassword.length < 6) {
                 showToast('Password must be at least 6 characters.', 'error');
                 return;
             }
-            if (newPwd !== confirmPwd) {
+            if (newPassword !== confirmPwd) {
                 showToast('Passwords do not match!', 'error');
                 return;
             }
 
-            btn.disabled     = true;
-            btn.textContent  = 'Updating…';
+            submitBtn.disabled  = true;
+            submitBtn.innerText = 'Updating…';
 
-            var result = await sb.auth.updateUser({ password: newPwd });
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session && !hasRecoverySession) {
+                showToast('Invalid or expired link. Please request a new password reset email.', 'error');
+                submitBtn.disabled  = false;
+                submitBtn.innerText = 'Update Password';
+                return;
+            }
 
-            if (result.error) {
-                showToast(result.error.message || 'Update failed. Please try again.', 'error');
-                btn.disabled    = false;
-                btn.textContent = 'Update Password';
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+            if (error) {
+                showToast(error.message, 'error');
+                submitBtn.disabled  = false;
+                submitBtn.innerText = 'Update Password';
             } else {
-                showToast('✅ Password reset successfully!', 'success');
-                btn.textContent = 'Done ✓';
+                showToast('Password reset successfully!', 'success');
+                submitBtn.innerText = 'Updated!';
                 form.reset();
             }
         });
