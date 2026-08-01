@@ -443,6 +443,11 @@ public class SupabaseAuthManager {
                     
                     Log.e("AUTH_DEBUG", "Supabase Auth Error: HTTP " + response.code() + " - " + errorMsg);
 
+                    if (response.code() == 429 || (errorMsg != null && (errorMsg.contains("429") || errorMsg.toLowerCase().contains("rate") || errorMsg.toLowerCase().contains("too many")))) {
+                        deliverError(callback, "Too many reset attempts! Please wait 5 minutes before trying again.");
+                        return;
+                    }
+
                     boolean isMailDeliveryFailure = (response.code() == 504 || response.code() == 500)
                             || (errorMsg != null && (errorMsg.contains("504") || errorMsg.toLowerCase().contains("gateway") || errorMsg.contains("Error sending recovery email") || errorMsg.toLowerCase().contains("smtp")));
 

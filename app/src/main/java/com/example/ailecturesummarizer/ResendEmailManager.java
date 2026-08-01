@@ -147,7 +147,11 @@ public class ResendEmailManager {
                     deliverSuccess(callback, bodyStr);
                 } else {
                     Log.e("ResendEmailManager", "Error sending email: " + bodyStr);
-                    deliverError(callback, "Resend Error " + response.code() + ": " + bodyStr);
+                    if (response.code() == 429 || bodyStr.contains("429") || bodyStr.toLowerCase().contains("rate")) {
+                        deliverError(callback, "Too many reset attempts! Please wait 5 minutes before trying again.");
+                    } else {
+                        deliverError(callback, "Resend Error " + response.code() + ": " + bodyStr);
+                    }
                 }
             }
         });

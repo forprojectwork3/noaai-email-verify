@@ -145,9 +145,14 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 public void onError(String errorMessage) {
                     setLoading(false);
                     Log.e("AUTH_DEBUG", "Password reset request error: " + errorMessage);
-                    String friendlyMsg = (errorMessage != null && (errorMessage.contains("504") || errorMessage.toLowerCase().contains("gateway") || errorMessage.toLowerCase().contains("timeout")))
-                            ? "The email server took longer than expected. Please check your inbox (and spam folder) or try again in a few moments."
-                            : errorMessage;
+                    String friendlyMsg;
+                    if (errorMessage != null && (errorMessage.contains("429") || errorMessage.toLowerCase().contains("rate") || errorMessage.toLowerCase().contains("too many"))) {
+                        friendlyMsg = "Too many reset attempts! Please wait 5 minutes before trying again.";
+                    } else if (errorMessage != null && (errorMessage.contains("504") || errorMessage.toLowerCase().contains("gateway") || errorMessage.toLowerCase().contains("timeout"))) {
+                        friendlyMsg = "The email server took longer than expected. Please check your inbox (and spam folder) or try again in a few moments.";
+                    } else {
+                        friendlyMsg = errorMessage;
+                    }
                     showMessage(friendlyMsg);
                 }
             });

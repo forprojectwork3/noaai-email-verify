@@ -331,7 +331,11 @@
             const { error } = await supabase.auth.updateUser({ password: newPassword });
 
             if (error) {
-                showToast(error.message, 'error');
+                let msg = error.message;
+                if (error.status === 429 || (msg && (msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('too many')))) {
+                    msg = 'Too many reset attempts! Please wait 5 minutes before trying again.';
+                }
+                showToast(msg, 'error');
                 submitBtn.disabled  = false;
                 submitBtn.innerText = 'Update Password';
             } else {
