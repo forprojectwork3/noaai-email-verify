@@ -105,7 +105,10 @@ public class ResendEmailManager {
         String buttonText = "Reset Password";
         
         String rawHtmlTemplate = getPremiumHtmlTemplate(title, bodyText, buttonText, "https://noaai.dpdns.org/reset/");
-        String htmlContent = rawHtmlTemplate.replace("https://noaai.dpdns.org/reset/", resetLink);
+        String htmlContent = rawHtmlTemplate.replace("href=\"https://noaai.dpdns.org/reset/\"", "href=\"" + resetLink + "\"");
+        if (htmlContent.contains("https://noaai.dpdns.org/reset/")) {
+            htmlContent = htmlContent.replace("https://noaai.dpdns.org/reset/", resetLink);
+        }
         String plainText = "Reset your NOA AI password: " + resetLink;
 
         JsonArray toArray = new JsonArray();
