@@ -211,26 +211,27 @@
         var SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
         var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let isSessionReady = false;
+        let sessionEstablished = false;
 
-        async function initAuthSession() {
-            // Check if there's a code in the URL query string (PKCE Flow)
+        async function handleIncomingAuth() {
+            // 1. Check for PKCE flow (?code=...)
             const urlParams = new URLSearchParams(window.location.search);
-            const authCode = urlParams.get('code');
-
-            if (authCode) {
-                // Exchange code for session
-                const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+            const code = urlParams.get('code');
+            
+            if (code) {
+                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
                 if (!error && data.session) {
-                    isSessionReady = true;
+                    sessionEstablished = true;
+                    // Clean URL without reloading page
+                    window.history.replaceState({}, document.title, window.location.pathname);
                     return;
                 }
             }
 
-            // Check if session exists in storage/hash
+            // 2. Check for active session / implicit hash fragment (#access_token=...)
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                isSessionReady = true;
+                sessionEstablished = true;
                 return;
             }
 
@@ -239,19 +240,19 @@
             const hasHashToken = hash.includes('access_token=') || hash.includes('type=recovery');
 
             // If no code in URL, no hash token, and no existing session, show UI warning
-            if (!authCode && !hasHashToken && !isSessionReady) {
+            if (!code && !hasHashToken && !sessionEstablished) {
                 showToast('No reset token found. Please open the link directly from your email.', 'error');
             }
         }
 
-        // Listen for Auth changes (Implicit Flow)
+        // Always listen for auth state updates
         supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || session) {
-                isSessionReady = true;
+                sessionEstablished = true;
             }
         });
 
-        initAuthSession();
+        handleIncomingAuth();
 
         /* ── Toast ────────────────────────────────────────────────────────── */
         var _toastTimer = null;
@@ -317,7 +318,7 @@
 
             const { data: { session } } = await supabase.auth.getSession();
             
-            if (!session && !isSessionReady) {
+            if (!session && !sessionEstablished) {
                 showToast('Invalid or expired link. Please request a new password reset email.', 'error');
                 submitBtn.disabled  = false;
                 submitBtn.innerText = 'Update Password';
