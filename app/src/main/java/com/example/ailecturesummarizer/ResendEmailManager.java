@@ -25,8 +25,8 @@ import okhttp3.Response;
 public class ResendEmailManager {
 
     private static final String RESEND_API_URL = "https://api.resend.com/emails";
-    private static final String FROM_EMAIL = "NOA AI <system@noaai.dpdns.org>";
-    private static final String REPLY_TO_EMAIL = "support@noaai.dpdns.org";
+    private static final String FROM_EMAIL = "NOA AI <team@send.noaai.dpdns.org>";
+    private static final String REPLY_TO_EMAIL = "team@send.noaai.dpdns.org";
     private static final String TEMPLATE_ID = "46e8f3f7-f012-4ffe-9813-738af58c93d9";
     private static final String CONFIRM_LINK = "https://noaai.dpdns.org/open/";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
