@@ -231,12 +231,22 @@
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 isSessionReady = true;
+                return;
+            }
+
+            // Check if hash fragment contains implicit flow tokens
+            const hash = window.location.hash;
+            const hasHashToken = hash.includes('access_token=') || hash.includes('type=recovery');
+
+            // If no code in URL, no hash token, and no existing session, show UI warning
+            if (!authCode && !hasHashToken && !isSessionReady) {
+                showToast('No reset token found. Please open the link directly from your email.', 'error');
             }
         }
 
         // Listen for Auth changes (Implicit Flow)
         supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'PASSWORD_RECOVERY' || session) {
+            if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || session) {
                 isSessionReady = true;
             }
         });
