@@ -100,11 +100,11 @@ public class ResendEmailManager {
      */
     public void sendPasswordResetEmail(String toEmail, String recoveryUrl, EmailCallback callback) {
         String finalUrl = (recoveryUrl != null && !recoveryUrl.isEmpty()) ? recoveryUrl : "https://noaai.dpdns.org/reset/";
-        String title = "Reset your NOA AI password";
+        String title = "Reset your NOA AI password 🔐";
         String bodyText = "You are receiving this email because we received a password reset request for your account. Please click the button below to choose a new password.";
         String buttonText = "Reset Password";
         String htmlContent = getPremiumHtmlTemplate(title, bodyText, buttonText, finalUrl);
-        String plainText = "Reset your NOA AI password by clicking the link below:\n" + finalUrl;
+        String plainText = "Reset your NOA AI password: " + finalUrl;
 
         JsonArray toArray = new JsonArray();
         toArray.add(toEmail);
