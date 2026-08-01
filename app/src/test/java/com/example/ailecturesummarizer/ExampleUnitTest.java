@@ -45,7 +45,7 @@ public class ExampleUnitTest {
                 + "</div></body></html>";
 
         JsonObject payloadObj = new JsonObject();
-        payloadObj.addProperty("from", "NOA AI <team@send.noaai.dpdns.org>");
+        payloadObj.addProperty("from", "NOA AI <team@noaai.dpdns.org>");
         
         JsonArray toArray = new JsonArray();
         toArray.add("sudheerpullagura041@gmail.com");
