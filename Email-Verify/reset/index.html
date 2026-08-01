@@ -216,6 +216,13 @@
 
         let sessionEstablished = false;
 
+        // Register Auth state listener BEFORE handling incoming auth token
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || session) {
+                sessionEstablished = true;
+            }
+        });
+
         async function handleIncomingAuth() {
             // 1. Check for PKCE flow (?code=...)
             const urlParams = new URLSearchParams(window.location.search);
@@ -231,29 +238,40 @@
                 }
             }
 
-            // 2. Check for active session / implicit hash fragment (#access_token=...)
+            // 2. Explicit Hash token parsing & session initialization (#access_token=...)
+            const hash = window.location.hash;
+            const hasHashToken = hash.includes('access_token=') || hash.includes('type=recovery');
+
+            if (hash && hash.includes('access_token=')) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token') || '';
+
+                if (accessToken) {
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                    if (!error && data.session) {
+                        sessionEstablished = true;
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        return;
+                    }
+                }
+            }
+
+            // 3. Check for active session in storage/memory
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 sessionEstablished = true;
                 return;
             }
 
-            // Check if hash fragment contains implicit flow tokens
-            const hash = window.location.hash;
-            const hasHashToken = hash.includes('access_token=') || hash.includes('type=recovery');
-
             // If no code in URL, no hash token, and no existing session, show UI warning
             if (!code && !hasHashToken && !sessionEstablished) {
                 showToast('No reset token found. Please open the link directly from your email.', 'error');
             }
         }
-
-        // Always listen for auth state updates
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || session) {
-                sessionEstablished = true;
-            }
-        });
 
         handleIncomingAuth();
 
@@ -334,6 +352,8 @@
                 let msg = error.message;
                 if (error.status === 429 || (msg && (msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('too many')))) {
                     msg = 'Too many reset attempts! Please wait 5 minutes before trying again.';
+                } else if (error.status === 401 || (msg && (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('session')))) {
+                    msg = 'Invalid or expired link. Please request a new password reset email.';
                 }
                 showToast(msg, 'error');
                 submitBtn.disabled  = false;
