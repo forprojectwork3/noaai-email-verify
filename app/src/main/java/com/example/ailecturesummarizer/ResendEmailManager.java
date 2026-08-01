@@ -230,7 +230,7 @@ public class ResendEmailManager {
                 + "                    <tr>\n"
                 + "                        <td style=\"background-color: rgba(0, 0, 0, 0.2); padding: 24px 30px; border-top: 1px solid #251f47; text-align: center;\">\n"
                 + "                            <p style=\"color: #6b6585; font-size: 12px; line-height: 1.6; margin: 0;\">\n"
-                + "                                For any questions or concerns, please visit our help center at <a href=\"https://noaai.netlify.app\" style=\"color: #bc13fe; text-decoration: none; font-weight: 500;\">noaai.netlify.app</a> or contact our support team.\n"
+                + "                                For any questions or concerns, please visit our help center at <a href=\"https://noaai.dpdns.org\" style=\"color: #bc13fe; text-decoration: none; font-weight: 500;\">noaai.dpdns.org</a> or contact our support team.\n"
                 + "                            </p>\n"
                 + "                        </td>\n"
                 + "                    </tr>\n"

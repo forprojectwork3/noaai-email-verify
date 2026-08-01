@@ -420,7 +420,7 @@ public class SupabaseAuthManager {
 
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
-        body.addProperty("redirectTo", "https://noaai.dpdns.org/reset");
+        body.addProperty("redirectTo", "https://noaai.dpdns.org/reset/");
 
         Request request = buildPostRequest("/auth/v1/recover", body.toString());
 
@@ -429,7 +429,7 @@ public class SupabaseAuthManager {
             public void onFailure(Call call, IOException e) {
                 Log.e("AUTH_DEBUG", "Network / timeout error: " + e.getMessage());
                 // Fallback to Resend API email delivery on client timeout
-                sendResendResetEmail(email, "https://noaai.dpdns.org/reset", callback);
+                sendResendResetEmail(email, "https://noaai.dpdns.org/reset/", callback);
             }
 
             @Override
@@ -459,7 +459,7 @@ public class SupabaseAuthManager {
     }
 
     private void sendResendResetEmail(final String email, final String recoveryUrl, final AuthCallback callback) {
-        String finalUrl = (recoveryUrl != null && !recoveryUrl.isEmpty()) ? recoveryUrl : "https://noaai.dpdns.org/reset";
+        String finalUrl = (recoveryUrl != null && !recoveryUrl.isEmpty()) ? recoveryUrl : "https://noaai.dpdns.org/reset/";
         ResendEmailManager.getInstance().sendPasswordResetEmail(email, finalUrl, new ResendEmailManager.EmailCallback() {
             @Override
             public void onSuccess(String emailId) {
