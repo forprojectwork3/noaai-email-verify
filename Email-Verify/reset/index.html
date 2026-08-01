@@ -211,23 +211,37 @@
         var SUPABASE_ANON_KEY = 'sb_publishable_mUkwvs-7BXlOQmPTFBcXVQ_VEqmbQz_';
         var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let hasRecoverySession = false;
+        let isSessionReady = false;
 
-        // Detect session initialization from URL token
+        async function initAuthSession() {
+            // Check if there's a code in the URL query string (PKCE Flow)
+            const urlParams = new URLSearchParams(window.location.search);
+            const authCode = urlParams.get('code');
+
+            if (authCode) {
+                // Exchange code for session
+                const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+                if (!error && data.session) {
+                    isSessionReady = true;
+                    return;
+                }
+            }
+
+            // Check if session exists in storage/hash
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                isSessionReady = true;
+            }
+        }
+
+        // Listen for Auth changes (Implicit Flow)
         supabase.auth.onAuthStateChange((event, session) => {
-          if (event === 'PASSWORD_RECOVERY' || session) {
-            hasRecoverySession = true;
-          }
+            if (event === 'PASSWORD_RECOVERY' || session) {
+                isSessionReady = true;
+            }
         });
 
-        // Check existing session on load
-        async function checkSession() {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            hasRecoverySession = true;
-          }
-        }
-        checkSession();
+        initAuthSession();
 
         /* ── Toast ────────────────────────────────────────────────────────── */
         var _toastTimer = null;
@@ -293,7 +307,7 @@
 
             const { data: { session } } = await supabase.auth.getSession();
             
-            if (!session && !hasRecoverySession) {
+            if (!session && !isSessionReady) {
                 showToast('Invalid or expired link. Please request a new password reset email.', 'error');
                 submitBtn.disabled  = false;
                 submitBtn.innerText = 'Update Password';
