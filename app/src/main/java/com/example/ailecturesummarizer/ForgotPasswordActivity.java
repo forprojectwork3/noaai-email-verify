@@ -114,18 +114,28 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     private void handleSendResetLink() {
         if (tilForgotEmail != null) tilForgotEmail.setError(null);
 
-        String email = etForgotEmail != null && etForgotEmail.getText() != null
-                ? etForgotEmail.getText().toString().trim() : "";
+        String rawEmail = etForgotEmail != null && etForgotEmail.getText() != null
+                ? etForgotEmail.getText().toString() : "";
+        String sanitizedEmail = rawEmail.trim().toLowerCase();
 
-        if (TextUtils.isEmpty(email)) {
+        if (TextUtils.isEmpty(sanitizedEmail)) {
             if (tilForgotEmail != null) tilForgotEmail.setError("Email is required");
+            return;
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(sanitizedEmail).matches()) {
+            if (tilForgotEmail != null) {
+                tilForgotEmail.setError("Please enter a valid email address.");
+            } else {
+                showMessage("Please enter a valid email address.");
+            }
             return;
         }
 
         setLoading(true);
 
         try {
-            authManager.resetPasswordForEmail(email, new SupabaseAuthManager.AuthCallback() {
+            authManager.resetPasswordForEmail(sanitizedEmail, new SupabaseAuthManager.AuthCallback() {
                 @Override
                 public void onSuccess(String message) {
                     setLoading(false);

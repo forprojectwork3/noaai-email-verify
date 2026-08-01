@@ -70,6 +70,7 @@ public class ResendEmailManager {
      * @param callback Delivers result to the calling Activity on the Main Thread
      */
     public void sendWelcomeEmail(String toEmail, String userName, String confirmationUrl, EmailCallback callback) {
+        String sanitizedEmail = (toEmail != null) ? toEmail.trim().toLowerCase() : "";
         String finalUrl = (confirmationUrl != null && !confirmationUrl.isEmpty()) ? confirmationUrl : CONFIRM_LINK;
         String title = "Verify your NOA AI account";
         String bodyText = "Thank you for signing up for NOA AI. To complete your registration and activate your smart video study companion profile, please click the verification button below.";
@@ -78,7 +79,7 @@ public class ResendEmailManager {
         String plainText = "Verify your NOA AI account by clicking the link below:\n" + finalUrl;
 
         JsonArray toArray = new JsonArray();
-        toArray.add(toEmail);
+        toArray.add(sanitizedEmail);
 
         JsonObject body = new JsonObject();
         body.addProperty("from", FROM_EMAIL);
@@ -99,6 +100,7 @@ public class ResendEmailManager {
      * @param callback Delivers result on the Main Thread
      */
     public void sendPasswordResetEmail(String toEmail, String recoveryUrl, EmailCallback callback) {
+        String sanitizedEmail = (toEmail != null) ? toEmail.trim().toLowerCase() : "";
         String resetLink = (recoveryUrl != null && !recoveryUrl.isEmpty()) ? recoveryUrl : "https://noaai.dpdns.org/reset/";
         String title = "Reset your NOA AI password 🔐";
         String bodyText = "You are receiving this email because we received a password reset request for your account. Please click the button below to choose a new password.";
@@ -112,7 +114,7 @@ public class ResendEmailManager {
         String plainText = "Reset your NOA AI password: " + resetLink;
 
         JsonArray toArray = new JsonArray();
-        toArray.add(toEmail);
+        toArray.add(sanitizedEmail);
 
         JsonObject body = new JsonObject();
         body.addProperty("from", FROM_EMAIL);

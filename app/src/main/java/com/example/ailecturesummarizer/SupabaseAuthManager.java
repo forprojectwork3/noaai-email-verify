@@ -417,9 +417,10 @@ public class SupabaseAuthManager {
      * @param callback Delivers result to the calling Activity on the Main Thread
      */
     public void resetPasswordForEmail(final String email, final AuthCallback callback) {
+        final String sanitizedEmail = (email != null) ? email.trim().toLowerCase() : "";
 
         JsonObject body = new JsonObject();
-        body.addProperty("email", email);
+        body.addProperty("email", sanitizedEmail);
         body.addProperty("redirectTo", "https://noaai.dpdns.org/reset/");
 
         Request request = buildPostRequest("/auth/v1/recover", body.toString());
@@ -429,7 +430,7 @@ public class SupabaseAuthManager {
             public void onFailure(Call call, IOException e) {
                 Log.e("AUTH_DEBUG", "Network / timeout error: " + e.getMessage());
                 // Fallback to Resend API email delivery on client timeout
-                sendResendResetEmail(email, "https://noaai.dpdns.org/reset/", callback);
+                sendResendResetEmail(sanitizedEmail, "https://noaai.dpdns.org/reset/", callback);
             }
 
             @Override
@@ -437,7 +438,7 @@ public class SupabaseAuthManager {
                 String bodyStr = response.body() != null ? response.body().string() : "";
                 if (response.isSuccessful()) {
                     String extractedLink = extractUrlFromBody(bodyStr);
-                    sendResendResetEmail(email, extractedLink, callback);
+                    sendResendResetEmail(sanitizedEmail, extractedLink, callback);
                 } else {
                     String errorMsg = extractErrorMessage(bodyStr, response.code());
                     
@@ -454,7 +455,7 @@ public class SupabaseAuthManager {
                     if (isMailDeliveryFailure) {
                         Log.i("SupabaseAuthManager", "Supabase SMTP/Gateway timeout, proceeding to send password reset via Resend client-side.");
                         String extractedLink = extractUrlFromBody(bodyStr);
-                        sendResendResetEmail(email, extractedLink, callback);
+                        sendResendResetEmail(sanitizedEmail, extractedLink, callback);
                     } else {
                         deliverError(callback, errorMsg);
                     }
@@ -464,8 +465,9 @@ public class SupabaseAuthManager {
     }
 
     private void sendResendResetEmail(final String email, final String recoveryUrl, final AuthCallback callback) {
+        final String sanitizedEmail = (email != null) ? email.trim().toLowerCase() : "";
         String finalUrl = (recoveryUrl != null && !recoveryUrl.isEmpty()) ? recoveryUrl : "https://noaai.dpdns.org/reset/";
-        ResendEmailManager.getInstance().sendPasswordResetEmail(email, finalUrl, new ResendEmailManager.EmailCallback() {
+        ResendEmailManager.getInstance().sendPasswordResetEmail(sanitizedEmail, finalUrl, new ResendEmailManager.EmailCallback() {
             @Override
             public void onSuccess(String emailId) {
                 deliverSuccess(callback, "Check your inbox (and spam folder) for the password reset link!");
